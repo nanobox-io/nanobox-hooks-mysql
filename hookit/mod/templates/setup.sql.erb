@@ -1,0 +1,26 @@
+-- give root supreme control
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
+
+-- create default database
+CREATE DATABASE IF NOT EXISTS gonano;
+
+-- give supreme control of default database to default user
+GRANT ALL PRIVILEGES ON gonano.* TO 'nanobox'@'%' identified by 'password' WITH GRANT OPTION;
+
+-- give default database user permission to SHOW (ENGINE|PROCESSLIST)
+GRANT PROCESS ON *.* TO 'nanobox'@'%';
+
+-- give default user super privilege
+GRANT SUPER ON *.* TO 'nanobox'@'%';
+
+-- remove anonymous accounts (must ensure exists before deleting)
+GRANT USAGE ON *.* TO ''@'localhost';
+DROP USER ''@'localhost';
+GRANT USAGE ON *.* TO ''@'<%= hostname %>';
+DROP USER ''@'<%= hostname %>';
+
+-- remove test database
+DROP DATABASE IF EXISTS test;
+
+-- effective immediately
+FLUSH PRIVILEGES;
