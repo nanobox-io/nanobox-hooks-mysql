@@ -77,5 +77,11 @@ module Hooky
       $?.exitstatus == 0
     end
 
+    def version()
+      output = `/data/bin/mysql --version`
+      matches = /mysql\s+Ver\s+\d+\.\d+\s+Distrib\s(\d+)\.(\d+)\..*/.match(output)
+      "#{matches[1]}.#{matches[2]}".to_f
+    end
+
   end
 end
