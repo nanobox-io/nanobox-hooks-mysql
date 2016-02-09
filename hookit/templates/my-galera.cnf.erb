@@ -11,7 +11,7 @@ INNODB_BUFFER_POOL_SIZE = case MEMCAP
 end
 
 KEY_BUFFER_SIZE = case MEMCAP
-  when 0..132 then type == 'mariadb' ? '8M' : '16M'
+  when 0..132 then '16M'
   when 133..264 then '16M'
   when 265..4096 then '32M'
   else

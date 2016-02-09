@@ -11,7 +11,7 @@ INNODB_BUFFER_POOL_SIZE = case MEMCAP
 end
 
 KEY_BUFFER_SIZE = case MEMCAP
-  when 0..132 then type == 'mariadb' ? '8M' : '16M'
+  when 0..132 then '16M'
   when 133..264 then '16M'
   when 265..4096 then '32M'
   else
@@ -99,12 +99,6 @@ innodb_io_capacity              = <%= boxfile[:mysql_innodb_io_capacity] %>
 innodb_read_io_threads          = <%= boxfile[:mysql_innodb_read_io_threads] %>
 innodb_write_io_threads         = <%= boxfile[:mysql_innodb_write_io_threads] %>
 innodb_file_per_table
-
-<% if type == 'mariadb' -%>
-# Aria
-aria_pagecache_buffer_size      = 8M
-aria_sort_buffer_size           = 32M
-<% end -%>
 
 <% if boxfile[:mysql_slow_query_log] -%>
 # Slow query log settings
