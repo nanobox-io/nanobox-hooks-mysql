@@ -30,7 +30,7 @@
 @test "Stop Local MySQL" {
   run run_hook "simple-single-local" "default-stop" "$(payload default/stop)"
   [ "$status" -eq 0 ]
-  while docker exec "simple-single-old" bash -c "ps aux | grep [m]ysqld"
+  while docker exec "simple-single-local" bash -c "ps aux | grep [m]ysqld"
   do
     sleep 1
   done
@@ -64,7 +64,7 @@
 @test "Stop Production MySQL" {
   run run_hook "simple-single-production" "default-stop" "$(payload default/stop)"
   [ "$status" -eq 0 ]
-  while docker exec "simple-single-old" bash -c "ps aux | grep [m]ysqld"
+  while docker exec "simple-single-production" bash -c "ps aux | grep [m]ysqld"
   do
     sleep 1
   done
