@@ -150,7 +150,7 @@ ft_stopword_file = <%= boxfile[:mysql_ft_stopword_file] %>
 # Plugin Configuration
 plugin_dir=/data/lib/mysql/plugin
 # we do not allow myisam tables with galera cluster
-plugin-load=DISABLE_MYISAM=dm.so
+plugin-load=DISABLE_MYISAM=disable_myisam.so
 <% plugins.each do |plugin| -%>
 plugin-load=<%= plugin[:name] %>=<%= plugin[:soname] %>
 <% end -%>

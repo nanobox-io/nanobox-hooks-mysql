@@ -58,7 +58,7 @@ module Hooky
         'blackhole' =>      {name: 'BLACKHOLE', soname: 'ha_blackhole.so'},
         'federated' =>      {name: 'FEDERATED', soname: 'ha_federated.so'},
         'audit_log' =>      {name: 'audit_log', soname: 'audit_log.so'},
-        'disable_myisam' => {name: 'DISABLE_MYISAM', soname: 'dm.so'},
+        'disable_myisam' => {name: 'DISABLE_MYISAM', soname: 'disable_myisam.so'},
         'sphinx' =>         {name: 'sphinx', soname: 'ha_sphinx.so'}
       }
       plugins[plugin]

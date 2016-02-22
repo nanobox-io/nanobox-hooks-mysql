@@ -2,7 +2,9 @@
 include Hooky::Mysql
 boxfile = converge( BOXFILE_DEFAULTS, payload[:boxfile] )
 
-memcap = payload[:member][:schema][:meta][:ram].to_i / 1024 / 1024
+total_mem = `vmstat -s | grep 'total memory' | awk '{print $1}'`.to_i
+cgroup_mem = `cat /sys/fs/cgroup/memory/memory.limit_in_bytes`.to_i
+memcap = [ total_mem / 1024, cgroup_mem / 1024 / 1024 ].min
 
 # set my.cnf
 template '/data/etc/my.cnf' do
@@ -20,12 +22,8 @@ template '/data/etc/my.cnf' do
   group 'gonano'
 end
 
-directory '/data/lib/svc/method' do
-  recursive true
-end
-
-template '/data/lib/svc/method/mysqld' do
-  source 'galera-mysqld.erb'
+template '/data/bin/start-mysql.sh' do
+  source 'start-mysql.sh.erb'
   owner 'gonano'
   group 'gonano'
   mode 0755
@@ -36,6 +34,6 @@ end
 
 template '/etc/service/db/run' do
   mode 0755
-  variables ({ exec: "/data/lib/svc/method/mysqld start 2>&1" })
+  variables ({ exec: "/data/bin/start-mysql.sh 2>&1" })
 end
 

@@ -5,7 +5,9 @@ boxfile = converge( BOXFILE_DEFAULTS, payload[:boxfile] )
 if payload[:platform] == 'local'
   memcap = 128
 else
-  memcap = payload[:member][:schema][:meta][:ram].to_i / 1024 / 1024
+  total_mem = `vmstat -s | grep 'total memory' | awk '{print $1}'`.to_i
+  cgroup_mem = `cat /sys/fs/cgroup/memory/memory.limit_in_bytes`.to_i
+  memcap = [ total_mem / 1024, cgroup_mem / 1024 / 1024 ].min
 end
 
 directory '/data/var/db/mysql' do
@@ -66,51 +68,118 @@ until File.exists?( "/tmp/mysqld.sock" )
    sleep( 1 )
 end
 
+users = []
+databases = []
+
 if payload[:platform] == 'local'
-
-  # Create nanobox user and databases
-  template '/tmp/setup.sql' do
-    variables ({
-      hostname: `hostname`.to_s.strip[-59..-1]
-    })
-    source 'setup.sql.erb'
-  end
-
-  execute 'setup user/permissions' do
-    command <<-END
-      /data/bin/mysql \
-      -u root \
-      -S /tmp/mysqld.sock \
-        < /tmp/setup.sql
-    END
-  end
-
+  users = [
+    {
+      :username => "root",
+      :password => "rootpassword",
+      :meta => {
+        :privileges => [
+          {
+            :privilege => "ALL PRIVILEGES",
+            :on => "*.*",
+            :with_grant => true
+          }
+        ]
+      }
+    },
+    {
+      :username => "gonano",
+      :password => "password",
+      :meta => {
+        :privileges => [
+          {
+            :privilege => "ALL PRIVILEGES",
+            :on => "gonano.*",
+            :with_grant => true
+          },
+          {
+            :privilege => "PROCESS",
+            :on => "*.*",
+            :with_grant => false
+          },
+          {
+            :privilege => "SUPER",
+            :on => "*.*",
+            :with_grant => false
+          }
+        ]
+      }
+    }
+  ]
+  databases = ["gonano"]
 else
-
-  # Create nanobox user and databases
-  users = payload[:service][:users]
-
-  use_password = can_login?('root', users[:system][:password])
-
-  template '/tmp/setup.sql' do
-    variables ({
-      users:    payload[:service][:users],
-      hostname: `hostname`.to_s.strip[-59..-1]
-    })
-    source 'setup.sql.erb'
-  end
-
-  execute 'setup user/permissions' do
-    command <<-END
-      /opt/gonano/bin/mysql \
-      -u root \
-      #{(use_password) ? "--password=#{users[:system][:password]}" : '' } \
-      -S /tmp/mysqld.sock \
-        < /tmp/setup.sql
-    END
-  end
-
+  users = payload[:users]
+  databases = payload[:databases]
 end
+
+# Create nanobox user and databases
+template '/tmp/setup.sql' do
+  variables ({
+    hostname: `hostname`.to_s.strip[-59..-1],
+    users: users,
+    databases: databases
+  })
+  source 'setup.sql.erb'
+end
+
+execute 'setup user/permissions' do
+  command <<-END
+    /data/bin/mysql \
+    -u root \
+    -S /tmp/mysqld.sock \
+      < /tmp/setup.sql
+  END
+end
+
+# if payload[:platform] == 'local'
+
+#   # Create nanobox user and databases
+#   template '/tmp/setup.sql' do
+#     variables ({
+#       hostname: `hostname`.to_s.strip[-59..-1]
+#     })
+#     source 'setup.sql.erb'
+#   end
+
+#   execute 'setup user/permissions' do
+#     command <<-END
+#       /data/bin/mysql \
+#       -u root \
+#       -S /tmp/mysqld.sock \
+#         < /tmp/setup.sql
+#     END
+#   end
+
+# else
+
+#   # Create nanobox user and databases
+#   users = payload[:service][:users]
+
+#   use_password = can_login?('root', users[:system][:password])
+
+#   template '/tmp/setup.sql' do
+#     variables ({
+#       users:    payload[:service][:users],
+#       hostname: `hostname`.to_s.strip[-59..-1]
+#     })
+#     source 'setup.sql.erb'
+#   end
+
+#   execute 'setup user/permissions' do
+#     command <<-END
+#       /opt/gonano/bin/mysql \
+#       -u root \
+#       #{(use_password) ? "--password=#{users[:system][:password]}" : '' } \
+#       -S /tmp/mysqld.sock \
+#         < /tmp/setup.sql
+#     END
+#   end
+
+# end
 
 file '/tmp/setup.sql' do
   action :delete
@@ -118,7 +187,11 @@ end
 
 # Configure narc
 template '/opt/gonano/etc/narc.conf' do
-  variables ({ uid: payload[:uid], app: "nanobox", logtap: payload[:logtap_host] })
+  variables ({ 
+    uid: payload[:uid], 
+    app: "nanobox", 
+    logtap: payload[:logtap_host] 
+  })
 end
 
 directory '/etc/service/narc'
@@ -151,6 +224,23 @@ if payload[:platform] != 'local'
 
   file '/root/.ssh/authorized_keys' do
     content payload[:ssh][:admin_key][:public_key]
+  end
+
+  # Create some ssh host keys
+  execute "ssh-keygen -f /opt/gonano/etc/ssh/ssh_host_rsa_key -N '' -t rsa" do
+    not_if { ::File.exists? '/opt/gonano/etc/ssh/ssh_host_rsa_key' }
+  end
+
+  execute "ssh-keygen -f /opt/gonano/etc/ssh/ssh_host_dsa_key -N '' -t dsa" do
+    not_if { ::File.exists? '/opt/gonano/etc/ssh/ssh_host_dsa_key' }
+  end
+
+  execute "ssh-keygen -f /opt/gonano/etc/ssh/ssh_host_ecdsa_key -N '' -t ecdsa" do
+    not_if { ::File.exists? '/opt/gonano/etc/ssh/ssh_host_ecdsa_key' }
+  end
+
+  execute "ssh-keygen -f /opt/gonano/etc/ssh/ssh_host_ed25519_key -N '' -t ed25519" do
+    not_if { ::File.exists? '/opt/gonano/etc/ssh/ssh_host_ed25519_key' }
   end
 
 end

@@ -1,9 +1,5 @@
 
-directory '/data/lib/svc/method' do
-  recursive true
-end
-
-template '/data/lib/svc/method/garbd' do
+template '/data/bin/start-garbd.sh' do
   owner 'gonano'
   group 'gonano'
   mode 0755
@@ -29,14 +25,15 @@ end
 
 template '/etc/service/monitor/run' do
   mode 0755
-  variables ({ exec: "/data/lib/svc/method/garbd start 2>&1" })
+  variables ({ exec: "/data/bin/start-garbd.sh 2>&1" })
 end
 
 # Narc Setup
-template '/opt/local/etc/narc/narc.conf' do
+template '/opt/gonano/etc/narc.conf' do
   source 'monitor-narc.conf.erb'
   variables ({
-    service: payload[:service],
-    app: payload[:app]
+    uid: payload[:uid],
+    app: "nanobox",
+    logtap: payload[:logtap_host]
   })
 end

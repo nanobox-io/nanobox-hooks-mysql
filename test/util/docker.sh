@@ -24,6 +24,7 @@ start_container() {
   docker run \
     --name=$name \
     -d \
+    -m 1024M \
     -e "PATH=$(path)" \
     --cap-add=NET_ADMIN \
     --net=nanobox \
@@ -33,7 +34,7 @@ start_container() {
 }
 
 stop_container() {
-  docker stop $1
+  docker stop -t=1 $1
   docker rm $1
 }
 
