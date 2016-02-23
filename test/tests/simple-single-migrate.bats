@@ -31,13 +31,13 @@ echo_lines() {
 }
 
 @test "Insert Old MySQL Data" {
-  run docker exec "simple-single-old" bash -c "/data/bin/mysql -u gonano -ppassword -e 'CREATE TABLE test_table (id INT(64) AUTO_INCREMENT PRIMARY KEY, value INT(64))' gonano"
+  run docker exec "simple-single-old" bash -c "/data/bin/mysql -u gonano -ppassword -e 'CREATE TABLE test_table (id INT(64) AUTO_INCREMENT PRIMARY KEY, value INT(64))' gonano 2> /dev/null"
   echo_lines
   [ "$status" -eq 0 ]
-  run docker exec "simple-single-old" bash -c "/data/bin/mysql -u gonano -ppassword -e 'INSERT INTO test_table VALUES (1, 1)' gonano"
+  run docker exec "simple-single-old" bash -c "/data/bin/mysql -u gonano -ppassword -e 'INSERT INTO test_table VALUES (1, 1)' gonano 2> /dev/null"
   echo_lines
   [ "$status" -eq 0 ]
-  run docker exec "simple-single-old" bash -c "/data/bin/mysql -u gonano -ppassword -e 'SELECT * FROM test_table' gonano"
+  run docker exec "simple-single-old" bash -c "/data/bin/mysql -u gonano -ppassword -e 'SELECT * FROM test_table' gonano 2> /dev/null"
   echo_lines
   [ "${lines[1]}" = "1	1" ]
   [ "$status" -eq 0 ]
@@ -87,10 +87,10 @@ echo_lines() {
 }
 
 @test "Update Old MySQL Data" {
-  run docker exec "simple-single-old" bash -c "/data/bin/mysql -u gonano -ppassword -e 'UPDATE test_table SET value = 2 WHERE id = 1' gonano"
+  run docker exec "simple-single-old" bash -c "/data/bin/mysql -u gonano -ppassword -e 'UPDATE test_table SET value = 2 WHERE id = 1' gonano 2> /dev/null"
   echo_lines
   [ "$status" -eq 0 ]
-  run docker exec "simple-single-old" bash -c "/data/bin/mysql -u gonano -ppassword -e 'SELECT * FROM test_table' gonano"
+  run docker exec "simple-single-old" bash -c "/data/bin/mysql -u gonano -ppassword -e 'SELECT * FROM test_table' gonano 2> /dev/null"
   echo_lines
   [ "${lines[1]}" = "1	2" ]
   [ "$status" -eq 0 ]
@@ -127,7 +127,7 @@ echo_lines() {
 }
 
 @test "Verify New MySQL Data" {
-  run docker exec "simple-single-new" bash -c "/data/bin/mysql -u gonano -ppassword -e 'SELECT * FROM test_table' gonano"
+  run docker exec "simple-single-new" bash -c "/data/bin/mysql -u gonano -ppassword -e 'SELECT * FROM test_table' gonano 2> /dev/null"
   echo_lines
   [ "${lines[1]}" = "1	2" ]
   [ "$status" -eq 0 ]
