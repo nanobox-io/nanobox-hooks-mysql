@@ -1,13 +1,12 @@
 # source docker helpers
 . util/docker.sh
 
-# setup() {
-#   start_container "backup-restore" "192.168.0.2"
-# }
-
-# teardown() {
-#   stop_container "backup-restore"
-# }
+echo_lines() {
+  for (( i=0; i < ${#lines[*]}; i++ ))
+  do
+    echo ${lines[$i]}
+  done
+}
 
 @test "Start Container" {
   start_container "backup-restore" "192.168.0.2"
@@ -19,6 +18,10 @@
   # Verify
   run docker exec backup-restore bash -c "ps aux | grep [m]ysqld"
   # [ "$status" -eq 0 ]
+  until docker exec "backup-restore" bash -c "nc 192.168.0.2 3306 < /dev/null"
+  do
+    sleep 1
+  done
 }
 
 @test "Start Backup Container" {
@@ -34,15 +37,45 @@
   [ "$status" -eq 0 ]
 }
 
+@test "Insert MySQL Data" {
+  run docker exec "backup-restore" bash -c "/data/bin/mysql -u gonano -ppassword -e 'CREATE TABLE test_table (id INT(64) AUTO_INCREMENT PRIMARY KEY, value INT(64))' gonano"
+  echo_lines
+  [ "$status" -eq 0 ]
+  run docker exec "backup-restore" bash -c "/data/bin/mysql -u gonano -ppassword -e 'INSERT INTO test_table VALUES (1, 1)' gonano"
+  echo_lines
+  [ "$status" -eq 0 ]
+  run docker exec "backup-restore" bash -c "/data/bin/mysql -u gonano -ppassword -e 'SELECT * FROM test_table' gonano"
+  echo_lines
+  [ "${lines[1]}" = "1	1" ]
+  [ "$status" -eq 0 ]
+}
+
 @test "Backup" {
   run run_hook "backup-restore" "default-backup" "$(payload default/backup)"
   echo $output
   [ "$status" -eq 0 ]
 }
 
+@test "Update MySQL Data" {
+  run docker exec "backup-restore" bash -c "/data/bin/mysql -u gonano -ppassword -e 'UPDATE test_table SET value = 2 WHERE id = 1' gonano"
+  echo_lines
+  [ "$status" -eq 0 ]
+  run docker exec "backup-restore" bash -c "/data/bin/mysql -u gonano -ppassword -e 'SELECT * FROM test_table' gonano"
+  echo_lines
+  [ "${lines[1]}" = "1	2" ]
+  [ "$status" -eq 0 ]
+}
+
 @test "Restore" {
   run run_hook "backup-restore" "default-restore" "$(payload default/restore)"
   echo $output
+  [ "$status" -eq 0 ]
+}
+
+@test "Verify MySQL Data" {
+  run docker exec "backup-restore" bash -c "/data/bin/mysql -u gonano -ppassword -e 'SELECT * FROM test_table' gonano"
+  echo_lines
+  [ "${lines[1]}" = "1	1" ]
   [ "$status" -eq 0 ]
 }
 

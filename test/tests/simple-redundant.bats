@@ -122,9 +122,59 @@ echo_lines() {
   [ "$status" -eq 0 ]
 }
 
+@test "Ensure MySQL Secondary Is Started" {
+  until docker exec "simple-redundant-secondary" bash -c "ps aux | grep [m]ysqld"
+  do
+    sleep 1
+  done
+  until docker exec "simple-redundant-secondary" bash -c "nc 192.168.0.3 3306 < /dev/null"
+  do
+    sleep 1
+  done
+}
+
 @test "Start Monitor Garbd" {
   run run_hook "simple-redundant-monitor" "monitor-start" "$(payload monitor/start)"
   echo_lines
+  [ "$status" -eq 0 ]
+}
+
+@test "Ensure Monitor Garbd Is Started" {
+  until docker exec "simple-redundant-monitor" bash -c "ps aux | grep [g]arbd"
+  do
+    sleep 1
+  done
+}
+
+@test "Insert Primary MySQL Data" {
+  run docker exec "simple-redundant-primary" bash -c "/data/bin/mysql -u gonano -ppassword -e 'CREATE TABLE test_table (id INT(64) AUTO_INCREMENT PRIMARY KEY, value INT(64))' gonano"
+  echo_lines
+  [ "$status" -eq 0 ]
+  run docker exec "simple-redundant-primary" bash -c "/data/bin/mysql -u gonano -ppassword -e 'INSERT INTO test_table VALUES (1, 1)' gonano"
+  echo_lines
+  [ "$status" -eq 0 ]
+  run docker exec "simple-redundant-primary" bash -c "/data/bin/mysql -u gonano -ppassword -e 'SELECT * FROM test_table' gonano"
+  echo_lines
+  [ "${lines[1]}" = "1	1" ]
+  [ "$status" -eq 0 ]
+}
+
+@test "Insert Secondary MySQL Data" {
+  run docker exec "simple-redundant-secondary" bash -c "/data/bin/mysql -u gonano -ppassword -e 'INSERT INTO test_table VALUES (2, 2)' gonano"
+  echo_lines
+  [ "$status" -eq 0 ]
+  run docker exec "simple-redundant-secondary" bash -c "/data/bin/mysql -u gonano -ppassword -e 'SELECT * FROM test_table' gonano"
+  echo_lines
+  [ "${lines[1]}" = "1	1" ]
+  [ "${lines[2]}" = "2	2" ]
+  [ "$status" -eq 0 ]
+}
+
+@test "Verify Primary MySQL Data" {
+  run docker exec "simple-redundant-primary" bash -c "/data/bin/mysql -u gonano -ppassword -e 'SELECT * FROM test_table' gonano"
+  echo_lines
+  [ "${lines[1]}" = "1	1" ]
+  [ "${lines[2]}" = "2	2" ]
   [ "$status" -eq 0 ]
 }
 

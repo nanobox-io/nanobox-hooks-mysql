@@ -1,14 +1,6 @@
 # source docker helpers
 . util/docker.sh
 
-# setup() {
-#   start_container "simple-single" "192.168.0.2"
-# }
-
-# teardown() {
-#   stop_container "simple-single"
-# }
-
 echo_lines() {
   for (( i=0; i < ${#lines[*]}; i++ ))
   do
@@ -31,7 +23,24 @@ echo_lines() {
   [ "$status" -eq 0 ]
   # Verify
   run docker exec simple-single-old bash -c "ps aux | grep [m]ysqld"
-  [ "$status" -eq 0 ] 
+  [ "$status" -eq 0 ]
+  until docker exec "simple-single-old" bash -c "nc 192.168.0.2 3306 < /dev/null"
+  do
+    sleep 1
+  done
+}
+
+@test "Insert Old MySQL Data" {
+  run docker exec "simple-single-old" bash -c "/data/bin/mysql -u gonano -ppassword -e 'CREATE TABLE test_table (id INT(64) AUTO_INCREMENT PRIMARY KEY, value INT(64))' gonano"
+  echo_lines
+  [ "$status" -eq 0 ]
+  run docker exec "simple-single-old" bash -c "/data/bin/mysql -u gonano -ppassword -e 'INSERT INTO test_table VALUES (1, 1)' gonano"
+  echo_lines
+  [ "$status" -eq 0 ]
+  run docker exec "simple-single-old" bash -c "/data/bin/mysql -u gonano -ppassword -e 'SELECT * FROM test_table' gonano"
+  echo_lines
+  [ "${lines[1]}" = "1	1" ]
+  [ "$status" -eq 0 ]
 }
 
 @test "Start New Container" {
@@ -77,6 +86,16 @@ echo_lines() {
   [ "$status" -eq 0 ]
 }
 
+@test "Update Old MySQL Data" {
+  run docker exec "simple-single-old" bash -c "/data/bin/mysql -u gonano -ppassword -e 'UPDATE test_table SET value = 2 WHERE id = 1' gonano"
+  echo_lines
+  [ "$status" -eq 0 ]
+  run docker exec "simple-single-old" bash -c "/data/bin/mysql -u gonano -ppassword -e 'SELECT * FROM test_table' gonano"
+  echo_lines
+  [ "${lines[1]}" = "1	2" ]
+  [ "$status" -eq 0 ]
+}
+
 @test "Stop Old MySQL" {
   run run_hook "simple-single-old" "default-stop" "$(payload default/stop)"
   [ "$status" -eq 0 ]
@@ -100,7 +119,18 @@ echo_lines() {
   [ "$status" -eq 0 ]
   # Verify
   run docker exec simple-single-new bash -c "ps aux | grep [m]ysqld"
-  [ "$status" -eq 0 ] 
+  [ "$status" -eq 0 ]
+  until docker exec "simple-single-new" bash -c "nc 192.168.0.3 3306 < /dev/null"
+  do
+    sleep 1
+  done
+}
+
+@test "Verify New MySQL Data" {
+  run docker exec "simple-single-new" bash -c "/data/bin/mysql -u gonano -ppassword -e 'SELECT * FROM test_table' gonano"
+  echo_lines
+  [ "${lines[1]}" = "1	2" ]
+  [ "$status" -eq 0 ]
 }
 
 @test "Stop Old Container" {
