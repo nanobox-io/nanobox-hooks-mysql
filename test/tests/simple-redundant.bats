@@ -146,6 +146,18 @@ echo_lines() {
   done
 }
 
+@test "Check Primary Redundant Status" {
+  run run_hook "simple-redundant-primary" "default-redundant-check_status" "$(payload default/redundant/check_status)"
+  echo_lines
+  [ "$status" -eq 0 ]
+}
+
+@test "Check Secondary Redundant Status" {
+  run run_hook "simple-redundant-secondary" "default-redundant-check_status" "$(payload default/redundant/check_status)"
+  echo_lines
+  [ "$status" -eq 0 ]
+}
+
 @test "Insert Primary MySQL Data" {
   run docker exec "simple-redundant-primary" bash -c "/data/bin/mysql -u gonano -ppassword -e 'CREATE TABLE test_table (id INT(64) AUTO_INCREMENT PRIMARY KEY, value INT(64))' gonano 2> /dev/null"
   echo_lines
@@ -198,13 +210,13 @@ echo_lines() {
 
 # Stop containers
 @test "Stop Primary Container" {
-  stop_container "simple-redundant-primary" "192.168.0.2"
+  stop_container "simple-redundant-primary"
 }
 
 @test "Stop Secondary Container" {
-  stop_container "simple-redundant-secondary" "192.168.0.3"
+  stop_container "simple-redundant-secondary"
 }
 
 @test "Stop Monitor Container" {
-  stop_container "simple-redundant-monitor" "192.168.0.3"
+  stop_container "simple-redundant-monitor"
 }

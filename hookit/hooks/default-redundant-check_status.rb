@@ -1,9 +1,17 @@
 
+root_user = []
+payload[:users].each do |user|
+  if user[:username] == "root"
+    root_user = user
+    break
+  end
+end
+
 status = execute "check wsrep cluster status" do
   command <<-EOF
     /data/bin/mysql \
       -u root \
-      --password=#{payload[:service][:users][:system][:password]} \
+      --password=#{root_user[:password]} \
       -S /tmp/mysqld.sock \
       -e "SHOW STATUS LIKE 'wsrep_local_state_comment';"
     EOF
@@ -13,7 +21,7 @@ role = execute "check wsrep cluster role" do
   command <<-EOF
     /data/bin/mysql \
       -u root \
-      --password=#{payload[:service][:users][:system][:password]} \
+      --password=#{root_user[:password]} \
       -S /tmp/mysqld.sock \
       -e "SHOW STATUS LIKE 'wsrep_cluster_status';"
     EOF
