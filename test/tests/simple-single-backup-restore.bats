@@ -31,10 +31,12 @@ echo_lines() {
   [ "$status" -eq 0 ]
 
   # start ssh server
-  run docker exec backup /opt/gonano/sbin/sshd
+  run run_hook "backup" "default-start_sshd" "$(payload default/start_sshd)"
   [ "$status" -eq 0 ]
-  run docker exec backup bash -c "ps aux | grep [s]shd"
-  [ "$status" -eq 0 ]
+  until docker exec "backup" bash -c "ps aux | grep [s]shd"
+  do
+    sleep 1
+  done
 }
 
 @test "Insert MySQL Data" {

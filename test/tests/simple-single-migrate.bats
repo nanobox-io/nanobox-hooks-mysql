@@ -74,10 +74,13 @@ echo_lines() {
 
 @test "Start New SSHD" {
   # start ssh server
-  run docker exec simple-single-new /opt/gonano/sbin/sshd
+  run run_hook "simple-single-new" "default-start_sshd" "$(payload default/start_sshd)"
+  echo_lines
   [ "$status" -eq 0 ]
-  run docker exec simple-single-new bash -c "ps aux | grep [s]shd"
-  [ "$status" -eq 0 ]
+  until docker exec "simple-single-new" bash -c "ps aux | grep [s]shd"
+  do
+    sleep 1
+  done
 }
 
 @test "Pre-Export Old MySQL" {
@@ -112,6 +115,16 @@ echo_lines() {
   run run_hook "simple-single-old" "default-single-export" "$(payload default/single/export)"
   echo_lines
   [ "$status" -eq 0 ]
+}
+
+@test "Stop New SSHD" {
+  # stop ssh server
+  run run_hook "simple-single-new" "default-stop_sshd" "$(payload default/stop_sshd)"
+  [ "$status" -eq 0 ]
+  while docker exec "simple-single-new" bash -c "ps aux | grep [s]shd"
+  do
+    sleep 1
+  done
 }
 
 @test "Restart New MySQL" {

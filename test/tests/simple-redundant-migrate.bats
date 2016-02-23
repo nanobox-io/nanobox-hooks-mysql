@@ -145,15 +145,21 @@ echo_lines() {
 
 @test "Start New SSHD" {
   # start ssh server
-  run docker exec simple-redundant-new-primary /opt/gonano/sbin/sshd
+  run run_hook "simple-redundant-new-primary" "default-start_sshd" "$(payload default/start_sshd)"
+  echo_lines
   [ "$status" -eq 0 ]
-  run docker exec simple-redundant-new-primary bash -c "ps aux | grep [s]shd"
+  # start ssh server
+  run run_hook "simple-redundant-new-secondary" "default-start_sshd" "$(payload default/start_sshd)"
+  echo_lines
   [ "$status" -eq 0 ]
-# start ssh server
-  run docker exec simple-redundant-new-secondary /opt/gonano/sbin/sshd
-  [ "$status" -eq 0 ]
-  run docker exec simple-redundant-new-secondary bash -c "ps aux | grep [s]shd"
-  [ "$status" -eq 0 ]
+  until docker exec "simple-redundant-new-primary" bash -c "ps aux | grep [s]shd"
+  do
+    sleep 1
+  done
+  until docker exec "simple-redundant-new-secondary" bash -c "ps aux | grep [s]shd"
+  do
+    sleep 1
+  done
 }
 
 @test "Insert Old MySQL Data" {
@@ -212,6 +218,24 @@ echo_lines() {
   [ "$status" -eq 0 ]
 }
 
+@test "Stop New SSHD" {
+  # stop ssh server
+  run run_hook "simple-redundant-new-primary" "default-stop_sshd" "$(payload default/stop_sshd)"
+  echo_lines
+  [ "$status" -eq 0 ]
+  # stop ssh server
+  run run_hook "simple-redundant-new-secondary" "default-stop_sshd" "$(payload default/stop_sshd)"
+  echo_lines
+  [ "$status" -eq 0 ]
+  while docker exec "simple-redundant-new-primary" bash -c "ps aux | grep [s]shd"
+  do
+    sleep 1
+  done
+  while docker exec "simple-redundant-new-secondary" bash -c "ps aux | grep [s]shd"
+  do
+    sleep 1
+  done
+}
 @test "Start New MySQL Cluster" {
   run run_hook "simple-redundant-new-primary" "default-start" "$(payload default/start)"
   echo_lines
