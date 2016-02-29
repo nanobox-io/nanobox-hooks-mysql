@@ -16,7 +16,7 @@ end
 
 template '/etc/service/ssh/run' do
   mode 0755
-  source 'run-ssh.erb'
+  source 'run-root.erb'
   variables ({ exec: "/opt/gonano/sbin/sshd -D -e 2>&1" })
 end
 

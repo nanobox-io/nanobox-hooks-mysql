@@ -1,16 +1,19 @@
 # source docker helpers
 . util/docker.sh
 
-setup() {
+echo_lines() {
+  for (( i=0; i < ${#lines[*]}; i++ ))
+  do
+    echo ${lines[$i]}
+  done
+}
+
+@test "Start Container" {
   start_container "simple-single" "192.168.0.2"
 }
 
-teardown() {
-  stop_container "simple-single"
-}
-
 @test "simple-single-environment" {
-  run run_hook "simple-single" "environment" "$(payload simple-single)"
+  run run_hook "simple-single" "environment" "$(payload environment)"
 
   [ "$status" -eq 0 ]
 
@@ -21,4 +24,8 @@ teardown() {
   [ "${lines[4]}" = "  \"PASS\": \"password\"," ]
   [ "${lines[5]}" = "  \"NAME\": \"gonano\"" ]
   [ "${lines[6]}" = "}" ]
+}
+
+@test "Stop Container" {
+  stop_container "simple-single"
 }

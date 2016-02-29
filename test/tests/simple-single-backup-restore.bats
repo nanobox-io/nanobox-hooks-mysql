@@ -11,7 +11,7 @@ echo_lines() {
 @test "Start Container" {
   start_container "backup-restore" "192.168.0.2"
   run run_hook "backup-restore" "default-configure" "$(payload default/configure-production)"
-  echo -e $output
+  echo_lines
   [ "$status" -eq 0 ] 
   run run_hook "backup-restore" "default-start" "$(payload default/start)"
   [ "$status" -eq 0 ]
@@ -54,7 +54,7 @@ echo_lines() {
 
 @test "Backup" {
   run run_hook "backup-restore" "default-backup" "$(payload default/backup)"
-  echo $output
+  echo_lines
   [ "$status" -eq 0 ]
 }
 
@@ -70,7 +70,7 @@ echo_lines() {
 
 @test "Restore" {
   run run_hook "backup-restore" "default-restore" "$(payload default/restore)"
-  echo $output
+  echo_lines
   [ "$status" -eq 0 ]
 }
 

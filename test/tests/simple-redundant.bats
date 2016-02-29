@@ -70,23 +70,23 @@ echo_lines() {
   [ "$status" -eq 0 ]
 }
 
-# @test "Redundant Configure VIP Agent Primary Container" {
-#   run run_hook "simple-redundant-primary" "default-redundant-config_vip_agent" "$(payload default/redundant/config_vip_agent-primary)"
-#   echo_lines
-#   [ "$status" -eq 0 ]
-# }
+@test "Redundant Configure VIP Agent Primary Container" {
+  run run_hook "simple-redundant-primary" "default-redundant-config_vip_agent" "$(payload default/redundant/config_vip_agent-primary)"
+  echo_lines
+  [ "$status" -eq 0 ]
+}
 
-# @test "Redundant Configure VIP Agent Secondary Container" {
-#   run run_hook "simple-redundant-secondary" "default-redundant-config_vip_agent" "$(payload default/redundant/config_vip_agent-secondary)"
-#   echo_lines
-#   [ "$status" -eq 0 ]
-# }
+@test "Redundant Configure VIP Agent Secondary Container" {
+  run run_hook "simple-redundant-secondary" "default-redundant-config_vip_agent" "$(payload default/redundant/config_vip_agent-secondary)"
+  echo_lines
+  [ "$status" -eq 0 ]
+}
 
-# @test "Redundant Configure VIP Agent Monitor Container" {
-#   run run_hook "simple-redundant-monitor" "monitor-redundant-config_vip_agent" "$(payload monitor/redundant/config_vip_agent-monitor)"
-#   echo_lines
-#   [ "$status" -eq 0 ]
-# }
+@test "Redundant Configure VIP Agent Monitor Container" {
+  run run_hook "simple-redundant-monitor" "monitor-redundant-config_vip_agent" "$(payload monitor/redundant/config_vip_agent-monitor)"
+  echo_lines
+  [ "$status" -eq 0 ]
+}
 
 @test "Ensure MySQL Is Stopped" {
   while docker exec "simple-redundant-primary" bash -c "ps aux | grep [m]ysqld"
@@ -190,23 +190,136 @@ echo_lines() {
   [ "$status" -eq 0 ]
 }
 
-# @test "Start Primary VIP Agent" {
-#   run run_hook "simple-redundant-primary" "default-redundant-start_vip_agent" "$(payload default/redundant/start_vip_agent)"
-#   echo_lines
-#   [ "$status" -eq 0 ]
-# }
+@test "Start Primary VIP Agent" {
+  run run_hook "simple-redundant-primary" "default-redundant-start_vip_agent" "$(payload default/redundant/start_vip_agent)"
+  echo_lines
+  [ "$status" -eq 0 ]
+}
 
-# @test "Start Secondary VIP Agent" {
-#   run run_hook "simple-redundant-secondary" "default-redundant-start_vip_agent" "$(payload default/redundant/start_vip_agent)"
-#   echo_lines
-#   [ "$status" -eq 0 ]
-# }
+@test "Start Secondary VIP Agent" {
+  run run_hook "simple-redundant-secondary" "default-redundant-start_vip_agent" "$(payload default/redundant/start_vip_agent)"
+  echo_lines
+  [ "$status" -eq 0 ]
+}
 
-# @test "Start Monitor VIP Agent" {
-#   run run_hook "simple-redundant-monitor" "monitor-redundant-start_vip_agent" "$(payload monitor/redundant/start_vip_agent)"
-#   echo_lines
-#   [ "$status" -eq 0 ]
-# }
+@test "Start Monitor VIP Agent" {
+  run run_hook "simple-redundant-monitor" "monitor-redundant-start_vip_agent" "$(payload monitor/redundant/start_vip_agent)"
+  echo_lines
+  [ "$status" -eq 0 ]
+  sleep 10
+}
+
+# Verify VIP
+@test "Verify Primary VIP Agent" {
+  run docker exec "simple-redundant-primary" bash -c "ifconfig | grep 192.168.0.5"
+  echo_lines
+  [ "$status" -eq 0 ]
+}
+
+@test "Verify Secondary VIP Agent" {
+  run docker exec "simple-redundant-secondary" bash -c "ifconfig | grep 192.168.0.5"
+  echo_lines
+  [ "$status" -eq 1 ]
+}
+
+@test "Verify Monitor VIP Agent" {
+  run docker exec "simple-redundant-monitor" bash -c "ifconfig | grep 192.168.0.5"
+  echo_lines
+  [ "$status" -eq 1 ]
+}
+
+@test "Stop Primary VIP Agent" {
+  run run_hook "simple-redundant-primary" "default-redundant-stop_vip_agent" "$(payload default/redundant/stop_vip_agent)"
+  echo_lines
+  [ "$status" -eq 0 ]
+}
+
+@test "Stop Secondary VIP Agent" {
+  run run_hook "simple-redundant-secondary" "default-redundant-stop_vip_agent" "$(payload default/redundant/stop_vip_agent)"
+  echo_lines
+  [ "$status" -eq 0 ]
+}
+
+@test "Stop Monitor VIP Agent" {
+  run run_hook "simple-redundant-monitor" "monitor-redundant-stop_vip_agent" "$(payload monitor/redundant/stop_vip_agent)"
+  echo_lines
+  [ "$status" -eq 0 ]
+}
+
+@test "Reverify Primary VIP Agent" {
+  run docker exec "simple-redundant-primary" bash -c "ifconfig | grep 192.168.0.5"
+  echo_lines
+  [ "$status" -eq 1 ]
+}
+
+@test "Reverify Secondary VIP Agent" {
+  run docker exec "simple-redundant-secondary" bash -c "ifconfig | grep 192.168.0.5"
+  echo_lines
+  [ "$status" -eq 1 ]
+}
+
+@test "Reverify Monitor VIP Agent" {
+  run docker exec "simple-redundant-monitor" bash -c "ifconfig | grep 192.168.0.5"
+  echo_lines
+  [ "$status" -eq 1 ]
+}
+
+@test "Restart Primary VIP Agent" {
+  run run_hook "simple-redundant-primary" "default-redundant-start_vip_agent" "$(payload default/redundant/start_vip_agent)"
+  echo_lines
+  [ "$status" -eq 0 ]
+}
+
+@test "Restart Secondary VIP Agent" {
+  run run_hook "simple-redundant-secondary" "default-redundant-start_vip_agent" "$(payload default/redundant/start_vip_agent)"
+  echo_lines
+  [ "$status" -eq 0 ]
+}
+
+@test "Restart Monitor VIP Agent" {
+  run run_hook "simple-redundant-monitor" "monitor-redundant-start_vip_agent" "$(payload monitor/redundant/start_vip_agent)"
+  echo_lines
+  [ "$status" -eq 0 ]
+  sleep 10
+}
+
+@test "Verify Primary VIP Agent Again" {
+  run docker exec "simple-redundant-primary" bash -c "ifconfig | grep 192.168.0.5"
+  echo_lines
+  [ "$status" -eq 0 ]
+}
+
+@test "Stop Primary" {
+  run docker stop "simple-redundant-primary"
+  echo_lines
+  [ "$status" -eq 0 ]
+  sleep 10
+}
+
+@test "Verify Secondary VIP Agent Failover" {
+  skip "Flip is acting weird, doesn't always failover properly."
+  docker exec "simple-redundant-secondary" cat /var/log/gonano/flip/current
+  docker exec "simple-redundant-monitor" cat /var/log/gonano/flip/current
+  run docker exec "simple-redundant-secondary" bash -c "ifconfig | grep 192.168.0.5"
+  echo_lines
+  [ "$status" -eq 0 ]
+}
+
+@test "Start Primary" {
+  run docker start "simple-redundant-primary"
+  echo_lines
+  [ "$status" -eq 0 ]
+  sleep 10
+}
+
+@test "Verify Primary VIP Agent fallback" {
+  docker exec "simple-redundant-secondary" cat /var/log/gonano/flip/current
+  docker exec "simple-redundant-primary" cat /var/log/gonano/flip/current
+  docker exec "simple-redundant-monitor" cat /var/log/gonano/flip/current
+  run docker exec "simple-redundant-primary" bash -c "ifconfig | grep 192.168.0.5"
+  echo_lines
+  [ "$status" -eq 0 ]
+}
 
 # Stop containers
 @test "Stop Primary Container" {

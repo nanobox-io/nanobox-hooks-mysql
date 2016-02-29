@@ -25,6 +25,7 @@ end
 
 template '/etc/service/flip/run' do
   mode 0755
+  source 'run-root.erb'
   variables ({ exec: "/data/flip/flipd /data/etc/flip/flip.conf 2>&1" })
 end
 
