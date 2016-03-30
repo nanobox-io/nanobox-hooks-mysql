@@ -1,0 +1,48 @@
+#!/bin/bash
+
+<%
+
+nodes = []
+
+payload[:members].each do |m|
+
+  if not m[:type] == 'arbitrator'
+    nodes << m[:local_ip]
+  end
+
+end
+
+%>
+
+NODES=(<%= nodes.join ' ' %>)
+
+ping_server() {
+  ping -c 1 $1
+}
+
+test_port() {
+  nc $1 $2 < /dev/null
+}
+
+start() {
+  for NODE in ${NODES[@]}; do
+    if [[ $(ping_server ${NODE}) ]]; then
+      echo "Found node - $NODE"
+      if [[ $(test_port ${NODE} 3306) ]]; then
+        echo "Found running mysqld"
+        exec /data/bin/garbd -n garbd -a gcomm://<%= nodes.join ':4567,' %>:4567 -g <%= payload[:service][:id].delete('-') %>
+      fi
+    fi
+  done
+}
+
+loop_start() {
+  while [[ 1 ]]
+  do
+    start
+    echo "Sleeping"
+    sleep 10
+  done
+}
+
+loop_start

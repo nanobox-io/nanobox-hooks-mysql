@@ -1,0 +1,40 @@
+{
+  "users": [
+    {
+      "username": "root", 
+      "password": "rootpassword", 
+      "meta": {
+        "privileges": [
+          {
+            "privilege": "ALL PRIVILEGES", 
+            "on": "*.*", 
+            "grant": true
+          }
+        ]
+      }
+    }, 
+    {
+      "username": "nanobox", 
+      "password": "password", 
+      "meta": {
+        "privileges": [
+          {
+            "privilege": "ALL PRIVILEGES", 
+            "on": "gonano.*", 
+            "grant": true
+          },
+          {
+            "privilege": "PROCESS", 
+            "on": "*.*", 
+            "grant": false
+          },
+          {
+            "privilege": "SUPER", 
+            "on": "*.*", 
+            "grant": false
+          }
+        ]
+      }
+    }
+  ]
+}

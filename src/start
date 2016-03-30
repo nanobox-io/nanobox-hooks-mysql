@@ -1,0 +1,43 @@
+#!/usr/bin/env ruby
+
+# hookit is installed as a bundled app, so we need bundler to load it for us
+$:.unshift  '/opt/gonano/hookit/vendor/bundle'
+require 'bundler/setup'
+
+# load hookit/setup to bootstrap hookit and import the dsl
+require 'hookit/setup'
+
+# Import service (and start)
+directory '/etc/service/db' do
+  recursive true
+end
+
+directory '/etc/service/db/log' do
+  recursive true
+end
+
+template '/etc/service/db/log/run' do
+  mode 0755
+  source 'log-run.erb'
+  variables ({ svc: "db" })
+end
+
+template '/etc/service/db/run' do
+  mode 0755
+  variables ({ exec: "mysqld --defaults-file=/data/etc/my.cnf --pid-file=/tmp/mysql.pid 2>&1" })
+end
+
+service 'db' do
+  action :enable
+  init :runit
+end
+
+# Wait for server to start
+until File.exists?( "/tmp/mysqld.sock" )
+  sleep( 1 )
+end
+
+ensure_socket 'db' do
+  port '3306'
+  action :listening
+end
