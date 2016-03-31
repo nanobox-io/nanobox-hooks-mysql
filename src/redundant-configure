@@ -8,7 +8,7 @@ require 'bundler/setup'
 require 'hookit/setup'
 
 include Hooky::Mysql
-boxfile = converge( BOXFILE_DEFAULTS, payload[:boxfile] )
+config = converge( CONFIG_DEFAULTS, payload[:config] )
 
 total_mem = `vmstat -s | grep 'total memory' | awk '{print $1}'`.to_i
 cgroup_mem = `cat /sys/fs/cgroup/memory/memory.limit_in_bytes`.to_i
@@ -31,11 +31,11 @@ if ["default", "primary", "secondary"].include? payload[:member][:role]
     mode 0644
     variables ({
       payload: payload,
-      boxfile: boxfile,
+      config: config,
       type:    'mysql',
       memcap:  memcap,
       version: version(),
-      plugins: plugins(boxfile)
+      plugins: plugins(config)
     })
     owner 'gonano'
     group 'gonano'

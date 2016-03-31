@@ -72,35 +72,35 @@ skip_name_resolve
 <% if version >= 5.6 -%>
 explicit_defaults_for_timestamp
 <% end -%>
-<% if boxfile[:event_scheduler] && ( ['true', 'On', 'on', '1'].include? boxfile[:event_scheduler].to_s ) -%>
+<% if config[:event_scheduler] && ( ['true', 'On', 'on', '1'].include? config[:event_scheduler].to_s ) -%>
 event_scheduler=on
 <% end -%>
 
 # MyISAM settings
-key_buffer_size         = <%= boxfile[:myisam_key_buffer_size] || KEY_BUFFER_SIZE%>
-sort_buffer_size        = <%= boxfile[:myisam_sort_buffer_size] %>
-read_buffer_size        = <%= boxfile[:myisam_read_buffer_size] %>
-read_rnd_buffer_size    = <%= boxfile[:myisam_read_rnd_buffer_size] %>
-myisam_sort_buffer_size = <%= boxfile[:myisam_myisam_sort_buffer_size] %>
-myisam-recover-options  = <%= boxfile[:myisam_recover] %>
+key_buffer_size         = <%= config[:myisam_key_buffer_size] || KEY_BUFFER_SIZE%>
+sort_buffer_size        = <%= config[:myisam_sort_buffer_size] %>
+read_buffer_size        = <%= config[:myisam_read_buffer_size] %>
+read_rnd_buffer_size    = <%= config[:myisam_read_rnd_buffer_size] %>
+myisam_sort_buffer_size = <%= config[:myisam_myisam_sort_buffer_size] %>
+myisam-recover-options  = <%= config[:myisam_recover] %>
 
 # InnoDB settings
 innodb_data_home_dir            = /data/var/db/mysql
 innodb_log_group_home_dir       = /data/var/db/mysql
 innodb_data_file_path           = ibdata1:100M:autoextend
-innodb_buffer_pool_size         = <%= boxfile[:innodb_buffer_pool_size] || INNODB_BUFFER_POOL_SIZE %>
+innodb_buffer_pool_size         = <%= config[:innodb_buffer_pool_size] || INNODB_BUFFER_POOL_SIZE %>
 innodb_log_file_size            = 400M
-innodb_additional_mem_pool_size = <%= boxfile[:innodb_additional_mem_pool_size] %>
-innodb_log_buffer_size          = <%= boxfile[:innodb_log_buffer_size] %>
-innodb_flush_log_at_trx_commit  = <%= boxfile[:innodb_flush_log_at_trx_commit] %>
-innodb_lock_wait_timeout        = <%= boxfile[:innodb_lock_wait_timeout] %>
-innodb_doublewrite              = <%= boxfile[:innodb_doublewrite] %>
-innodb_io_capacity              = <%= boxfile[:innodb_io_capacity] %>
-innodb_read_io_threads          = <%= boxfile[:innodb_read_io_threads] %>
-innodb_write_io_threads         = <%= boxfile[:innodb_write_io_threads] %>
+innodb_additional_mem_pool_size = <%= config[:innodb_additional_mem_pool_size] %>
+innodb_log_buffer_size          = <%= config[:innodb_log_buffer_size] %>
+innodb_flush_log_at_trx_commit  = <%= config[:innodb_flush_log_at_trx_commit] %>
+innodb_lock_wait_timeout        = <%= config[:innodb_lock_wait_timeout] %>
+innodb_doublewrite              = <%= config[:innodb_doublewrite] %>
+innodb_io_capacity              = <%= config[:innodb_io_capacity] %>
+innodb_read_io_threads          = <%= config[:innodb_read_io_threads] %>
+innodb_write_io_threads         = <%= config[:innodb_write_io_threads] %>
 innodb_file_per_table
 
-<% if boxfile[:slow_query_log] -%>
+<% if config[:slow_query_log] -%>
 # Slow query log settings
 # The default logs all full table scans,tmp tables,filesorts on disk queries
 slow_query_log_file = /var/log/mysql/slowquery.log
@@ -108,41 +108,41 @@ slow_query_log      = 1
 <% end -%>
 
 # Other general MySQL settings
-performance-schema        = <%= boxfile[:performance_schema] %>
-table_open_cache          = <%= boxfile[:table_open_cache] || TABLE_CACHE %>
-thread_cache_size         = <%= boxfile[:thread_cache_size] || THREAD_CACHE_SIZE %>
-query_cache_type          = <%= boxfile[:query_cache_type] %>
-back_log                  = <%= boxfile[:back_log] || BACK_LOG %>
-thread_concurrency        = <%= boxfile[:thread_concurrency] || (`mpstat | tail -n +2 | wc -l`.to_i * 2 + 2) %>
+performance-schema        = <%= config[:performance_schema] %>
+table_open_cache          = <%= config[:table_open_cache] || TABLE_CACHE %>
+thread_cache_size         = <%= config[:thread_cache_size] || THREAD_CACHE_SIZE %>
+query_cache_type          = <%= config[:query_cache_type] %>
+back_log                  = <%= config[:back_log] || BACK_LOG %>
+thread_concurrency        = <%= config[:thread_concurrency] || (`mpstat | tail -n +2 | wc -l`.to_i * 2 + 2) %>
 tmpdir                    = /var/tmp
-max_connections           = <%= boxfile[:max_connections] || MAX_CONNECTIONS %>
-max_allowed_packet        = <%= boxfile[:max_allowed_packet] %>
-max_join_size             = <%= boxfile[:max_join_size] %>
-net_buffer_length         = <%= boxfile[:net_buffer_length] %>
-thread_stack              = <%= boxfile[:thread_stack] %>
-tmp_table_size            = <%= boxfile[:tmp_table_size] %>
-max_heap_table_size       = <%= boxfile[:max_heap_table_size] %>
-group_concat_max_len      = <%= boxfile[:group_concat_max_len] %>
+max_connections           = <%= config[:max_connections] || MAX_CONNECTIONS %>
+max_allowed_packet        = <%= config[:max_allowed_packet] %>
+max_join_size             = <%= config[:max_join_size] %>
+net_buffer_length         = <%= config[:net_buffer_length] %>
+thread_stack              = <%= config[:thread_stack] %>
+tmp_table_size            = <%= config[:tmp_table_size] %>
+max_heap_table_size       = <%= config[:max_heap_table_size] %>
+group_concat_max_len      = <%= config[:group_concat_max_len] %>
 
-<% if boxfile[:allow_suspicious_udfs] and ['On', 'on', '1'].include? boxfile[:allow_suspicious_udfs] -%>
+<% if config[:allow_suspicious_udfs] and ['On', 'on', '1'].include? config[:allow_suspicious_udfs] -%>
 allow_suspicious_udfs
 <% end -%>
-<% if boxfile[:ansi] -%>
+<% if config[:ansi] -%>
 ansi
 <% end -%>
 
 # Full Text Settings
-<% if boxfile[:ft_max_word_len] and boxfile[:ft_max_word_len] >= 10 -%>
-ft_max_word_len = <%= boxfile[:ft_max_word_len] %>
+<% if config[:ft_max_word_len] and config[:ft_max_word_len] >= 10 -%>
+ft_max_word_len = <%= config[:ft_max_word_len] %>
 <% end -%>
-<% if boxfile[:ft_min_word_len] and boxfile[:ft_min_word_len] >= 1 -%>
-ft_min_word_len = <%= boxfile[:ft_min_word_len] %>
+<% if config[:ft_min_word_len] and config[:ft_min_word_len] >= 1 -%>
+ft_min_word_len = <%= config[:ft_min_word_len] %>
 <% end -%>
-<% if boxfile[:ft_query_expansion_limit] and boxfile[:ft_query_expansion_limit] >= 0 and boxfile[:ft_query_expansion_limit] <= 1000 -%>
-ft_query_expansion_limit = <%= boxfile[:ft_query_expansion_limit] %>
+<% if config[:ft_query_expansion_limit] and config[:ft_query_expansion_limit] >= 0 and config[:ft_query_expansion_limit] <= 1000 -%>
+ft_query_expansion_limit = <%= config[:ft_query_expansion_limit] %>
 <% end -%>
-<% if boxfile[:ft_stopword_file] -%>
-ft_stopword_file = <%= boxfile[:ft_stopword_file] %>
+<% if config[:ft_stopword_file] -%>
+ft_stopword_file = <%= config[:ft_stopword_file] %>
 <% end -%>
 
 # Plugin Configuration
@@ -152,8 +152,8 @@ plugin-load=<%= plugin[:name] %>=<%= plugin[:soname] %>
 <% end -%>
 
 # Plugin-Specific Configuration
-<% if boxfile[:audit_log] and boxfile[:plugins].include? 'audit_log' -%>
-mysql_audit_log = <%= boxfile[:audit_log] %>
+<% if config[:audit_log] and config[:plugins].include? 'audit_log' -%>
+mysql_audit_log = <%= config[:audit_log] %>
 <% end -%>
 
 # Replication settings (master to slave)
@@ -161,7 +161,7 @@ mysql_audit_log = <%= boxfile[:audit_log] %>
 # to this besides uncommenting the lines below.
 # See: http://wiki.joyent.com/wiki/display/jpc2/Replication
 #
-<% if boxfile[:binlog] -%>
+<% if config[:binlog] -%>
 binlog_format     = ROW
 log-bin           = /data/var/db/mysql/bin.log
 max_binlog_size   = 100M

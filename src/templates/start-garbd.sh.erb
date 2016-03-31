@@ -30,7 +30,7 @@ start() {
       echo "Found node - $NODE"
       if [[ $(test_port ${NODE} 3306) ]]; then
         echo "Found running mysqld"
-        exec /data/bin/garbd -n garbd -a gcomm://<%= nodes.join ':4567,' %>:4567 -g <%= payload[:service][:id].delete('-') %>
+        exec /data/bin/garbd -n garbd -a gcomm://<%= nodes.join ':4567,' %>:4567 -g <%= payload[:component][:id].delete('-') %>
       fi
     fi
   done

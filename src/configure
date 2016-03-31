@@ -8,7 +8,7 @@ require 'bundler/setup'
 require 'hookit/setup'
 
 include Hooky::Mysql
-boxfile = converge( BOXFILE_DEFAULTS, payload[:boxfile] )
+config = converge( CONFIG_DEFAULTS, payload[:config] )
 
 if payload[:platform] == 'local'
   memcap = 128
@@ -60,9 +60,8 @@ end
 # Configure narc
 template '/opt/gonano/etc/narc.conf' do
   variables ({ 
-    uid: payload[:uid], 
-    app: "nanobox", 
-    logtap: payload[:logtap_host] 
+    uid: payload[:component][:uid], 
+    logvac: payload[:logvac_host] 
   })
 end
 
@@ -99,11 +98,11 @@ if ["default", "primary", "secondary"].include? payload[:member][:role]
     owner 'gonano'
     group 'gonano'
     variables ({
-      boxfile: boxfile,
+      config: config,
       type:    'mysql',
       version: version(),
       memcap:  memcap,
-      plugins: plugins(boxfile)
+      plugins: plugins(config)
     })
   end
 
