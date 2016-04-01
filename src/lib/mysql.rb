@@ -66,16 +66,17 @@ module Hooky
 
     CONFIG_DEFAULTS = {
       # global settings
-      before_deploy: {type: :array, of: :string, default: []},
-      after_deploy:  {type: :array, of: :string, default: []},
+      before_deploy:                   {type: :array, of: :string, default: []},
+      after_deploy:                    {type: :array, of: :string, default: []},
+      hook_ref:                        {type: :string, default: "stable"},
 
       # myisam
-      myisam_key_buffer_size:         {type: :byte, default: nil},
-      myisam_sort_buffer_size:        {type: :byte, default: '1M'},
-      myisam_read_buffer_size:        {type: :byte, default: '1M'},
-      myisam_read_rnd_buffer_size:    {type: :byte, default: '4M'},
-      myisam_myisam_sort_buffer_size: {type: :byte, default: '64M'},
-      myisam_recover:                 {type: :string, default: 'DEFAULT', from: ['DEFAULT', 'BACKUP', 'FORCE', 'QUICK']},
+      myisam_key_buffer_size:          {type: :byte, default: nil},
+      myisam_sort_buffer_size:         {type: :byte, default: '1M'},
+      myisam_read_buffer_size:         {type: :byte, default: '1M'},
+      myisam_read_rnd_buffer_size:     {type: :byte, default: '4M'},
+      myisam_myisam_sort_buffer_size:  {type: :byte, default: '64M'},
+      myisam_recover:                  {type: :string, default: 'DEFAULT', from: ['DEFAULT', 'BACKUP', 'FORCE', 'QUICK']},
 
       # innodb
       innodb_buffer_pool_size:         {type: :byte, default: nil},
@@ -89,31 +90,31 @@ module Hooky
       innodb_write_io_threads:         {type: :integer, default: 8},
 
       # general
-      slow_query_log:           {type: :on_off, default: 'on'},
-      performance_schema:       {type: :on_off, default: 'off'},
-      table_open_cache:         {type: :integer, default: 64},
-      thread_cache_size:        {type: :integer, default: nil},
-      query_cache_type:         {type: :integer, default: 0, from: [0, 1, 2]},
-      back_log:                 {type: :integer, default: nil},
-      thread_concurrency:       {type: :integer, default: nil},
-      max_connections:          {type: :integer, default: nil},
-      max_allowed_packet:       {type: :byte, default: '24M'},
-      max_join_size:            {type: :integer, default: 9223372036854775807},
-      net_buffer_length:        {type: :byte, default: '2K'},
-      group_concat_max_len:     {type: :integer, default: 1024},
-      thread_stack:             {type: :byte, default: '256K'},
-      tmp_table_size:           {type: :byte, default: '64M'},
-      max_heap_table_size:      {type: :byte, default: '64M'},
-      plugins:                  {type: :array, of: :string, default: [], from: ['archive', 'blackhole', 'federated', 'audit_log', 'disable_myisam', 'sphinx']},
-      allow_suspicious_udfs:    {type: :on_off, default: nil},
-      ansi:                     {type: :on_off, default: nil},
-      ft_max_word_len:          {type: :integer, default: nil},
-      ft_min_word_len:          {type: :integer, default: nil},
-      ft_query_expansion_limit: {type: :integer, default: nil},
-      binlog:                   {type: :on_off, default: nil},
-      event_scheduler:          {type: :on_off, default: 'off'},
-      ft_stopword_file:         {type: :file, default: nil},
-      users:                    {type: :array, of: :hash, template: USER_DEFAULTS, default: DEFAULT_USERS}
+      slow_query_log:                  {type: :on_off, default: 'on'},
+      performance_schema:              {type: :on_off, default: 'off'},
+      table_open_cache:                {type: :integer, default: 64},
+      thread_cache_size:               {type: :integer, default: nil},
+      query_cache_type:                {type: :integer, default: 0, from: [0, 1, 2]},
+      back_log:                        {type: :integer, default: nil},
+      thread_concurrency:              {type: :integer, default: nil},
+      max_connections:                 {type: :integer, default: nil},
+      max_allowed_packet:              {type: :byte, default: '24M'},
+      max_join_size:                   {type: :integer, default: 9223372036854775807},
+      net_buffer_length:               {type: :byte, default: '2K'},
+      group_concat_max_len:            {type: :integer, default: 1024},
+      thread_stack:                    {type: :byte, default: '256K'},
+      tmp_table_size:                  {type: :byte, default: '64M'},
+      max_heap_table_size:             {type: :byte, default: '64M'},
+      plugins:                         {type: :array, of: :string, default: [], from: ['archive', 'blackhole', 'federated', 'audit_log', 'disable_myisam', 'sphinx']},
+      allow_suspicious_udfs:           {type: :on_off, default: nil},
+      ansi:                            {type: :on_off, default: nil},
+      ft_max_word_len:                 {type: :integer, default: nil},
+      ft_min_word_len:                 {type: :integer, default: nil},
+      ft_query_expansion_limit:        {type: :integer, default: nil},
+      binlog:                          {type: :on_off, default: nil},
+      event_scheduler:                 {type: :on_off, default: 'off'},
+      ft_stopword_file:                {type: :file, default: nil},
+      users:                           {type: :array, of: :hash, template: USER_DEFAULTS, default: DEFAULT_USERS}
     }
 
     def plugin_info(plugin)
