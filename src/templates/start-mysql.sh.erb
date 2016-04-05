@@ -1,0 +1,124 @@
+#!/bin/bash
+
+ulimit -n 10240
+
+<%
+node = nil
+arbiter = nil
+head_node = nil
+
+payload[:members].each do |m|
+
+  if m[:role] == 'arbitrator'
+    arbiter = m[:local_ip]
+
+  elsif payload[:member][:uid] == m[:uid]
+    if m[:role] == 'primary'
+      head_node = 'yes'
+    else
+      head_node = 'no'
+    end
+
+  else
+    node = m[:local_ip]
+  end
+
+end
+
+-%>
+PIDFILE="/tmp/mysql.pid"
+NODE=<%= node %>
+ARBITER=<%= arbiter %>
+HEAD_NODE=<%= head_node %>
+
+ping_server() {
+  ping -c 1 $1
+}
+
+test_port() {
+  nc $1 $2 < /dev/null
+}
+
+start(){
+  # ping arbiter
+  if [[ $(ping_server ${ARBITER}) ]]; then
+    # is arbiter running?
+    if [[ $(test_port ${ARBITER} 4567) ]]; then
+      # Really start
+      # echo "found arbiter - starting up"
+      exec /data/sbin/mysqld --defaults-file=/data/etc/my.cnf --pid-file=${PIDFILE}
+    fi
+  fi
+  # if that didn't start it check the other member
+  if [[ $(ping_server $NODE) ]];  then
+    if [[ $(test_port $NODE 3306) ]]; then
+      # start up
+      # echo "found other node - starting up"
+      exec /data/sbin/mysqld --defaults-file=/data/etc/my.cnf --pid-file=${PIDFILE}
+    fi
+    # mysql isn't listening. Lets compare seqno
+    if [[ -f /data/var/db/mariadb/grastate.dat ]]; then
+      # echo "found state file locally"
+      MY_SEQNO=$(awk '/seqno:/ {print $2;}' /data/var/db/mariadb/grastate.dat)
+      if [[ ${MY_SEQNO} = "-1" ]]; then
+        # crashed or invalid, try something else
+        # echo "local seqno is -1, trying alternative"
+        # Get mysql to log the recover position
+        /data/sbin/mysqld --defaults-file=/data/etc/my.cnf --bind-address 127.0.0.1 --wsrep-recover
+        if [[ $? -eq 0 ]]; then
+          # pull position from log
+          MY_SEQNO=$(grep 'Recovered position' /var/log/mysql/error.log | tail -n 1 | awk -F ":" '{print $6}')
+        else
+          # mysql running?
+          # echo "local mysql already running?"
+          MY_SEQNO="-2"
+        fi
+      fi
+    else
+      MY_SEQNO="-1"
+    fi
+    if [[ $(ssh -o StrictHostKeyChecking=no   $NODE stat /data/var/db/mariadb/grastate.dat) ]]; then
+      # echo "found state file remotely"
+      NODE_SEQNO=$(ssh -o StrictHostKeyChecking=no   $NODE "awk '/seqno:/ {print \$2;}' /data/var/db/mariadb/grastate.dat")
+      if [[ ${NODE_SEQNO} = "-1" ]]; then
+        # crashed or invalid, try something else
+        # echo "remote seqno is -1, trying alternative"
+        # Get mysql to log the recover position
+        ssh -o StrictHostKeyChecking=no $NODE "/data/sbin/mysqld --defaults-file=/data/etc/my.cnf --bind-address 127.0.0.1 --wsrep-recover"
+        if [[ $? -eq 0 ]]; then
+          # pull position from log
+          NODE_SEQNO=$(ssh -o StrictHostKeyChecking=no $NODE "grep 'Recovered position' /var/log/mysql/error.log" | tail -n 1 | awk -F ":" '{print $6}')
+        else
+          # mysql running?
+          # echo "remote mysql already running?"
+          NODE_SEQNO="-2"
+        fi
+      fi
+    else
+      NODE_SEQNO="-1"
+    fi
+    # should I start with --wsrep-new-cluster
+    if [[ ${MY_SEQNO} -ne "-2" && ${NODE_SEQNO} -ne "-2" ]]; then
+      if [[ ${MY_SEQNO} -gt ${NODE_SEQNO} ]]; then
+        # echo "starting with --wsrep-new-cluster"
+        exec /data/sbin/mysqld --defaults-file=/data/etc/my.cnf --wsrep-new-cluster --pid-file=${PIDFILE}
+      fi
+      if [[ ${MY_SEQNO} -eq ${NODE_SEQNO} && ${HEAD_NODE} = "yes" ]]; then
+        # echo "head node, starting with --wsrep-new-cluster"
+        exec /data/sbin/mysqld --defaults-file=/data/etc/my.cnf --wsrep-new-cluster --pid-file=${PIDFILE}
+      fi
+    fi
+  fi
+  # server isn't up yet, wait until I can ping
+}
+
+loop_start(){
+  while [[ 1 ]]
+  do
+    start
+    # echo "Sleeping"
+    sleep 10
+  done
+}
+
+loop_start

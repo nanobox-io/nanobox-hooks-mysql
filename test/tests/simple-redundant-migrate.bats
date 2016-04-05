@@ -1,5 +1,6 @@
 # source docker helpers
 . util/docker.sh
+. util/service.sh
 
 echo_lines() {
   for (( i=0; i < ${#lines[*]}; i++ ))
@@ -12,279 +13,289 @@ echo_lines() {
 @test "Start Old Containers" {
   start_container "simple-redundant-old-primary" "192.168.0.2"
   start_container "simple-redundant-old-secondary" "192.168.0.3"
-  start_container "simple-redundant-old-monitor" "192.168.0.4"
+  start_container "simple-redundant-old-arbitrator" "192.168.0.4"
 }
 
 @test "Start New Containers" {
   start_container "simple-redundant-new-primary" "192.168.0.6"
   start_container "simple-redundant-new-secondary" "192.168.0.7"
-  start_container "simple-redundant-new-monitor" "192.168.0.8"
+  start_container "simple-redundant-new-arbitrator" "192.168.0.8"
 }
 
 # Configure containers
 @test "Configure Old Containers" {
-  run run_hook "simple-redundant-old-primary" "default-configure" "$(payload default/configure-production)"
+  run run_hook "simple-redundant-old-primary" "configure" "$(payload configure-primary)"
   echo_lines
   [ "$status" -eq 0 ]
-  run run_hook "simple-redundant-old-secondary" "default-configure" "$(payload default/configure-production)"
+  run run_hook "simple-redundant-old-secondary" "configure" "$(payload configure-secondary)"
   echo_lines
   [ "$status" -eq 0 ]
-  run run_hook "simple-redundant-old-monitor" "monitor-configure" "$(payload monitor/configure)"
+  run run_hook "simple-redundant-old-arbitrator" "configure" "$(payload configure-arbitrator)"
   echo_lines
   [ "$status" -eq 0 ]
+  sleep 10
 }
 
 # Configure containers
 @test "Configure New Containers" {
-  run run_hook "simple-redundant-new-primary" "default-configure" "$(payload default/configure-production)"
+  run run_hook "simple-redundant-new-primary" "configure" "$(payload configure-primary-new)"
   echo_lines
   [ "$status" -eq 0 ]
-  run run_hook "simple-redundant-new-secondary" "default-configure" "$(payload default/configure-production)"
+  run run_hook "simple-redundant-new-secondary" "configure" "$(payload configure-secondary-new)"
   echo_lines
   [ "$status" -eq 0 ]
-  run run_hook "simple-redundant-new-monitor" "monitor-configure" "$(payload monitor/configure)"
+  run run_hook "simple-redundant-new-arbitrator" "configure" "$(payload configure-arbitrator-new)"
+  echo_lines
+  [ "$status" -eq 0 ]
+  sleep 10
+}
+
+@test "Stop Old ${service_name} First" {
+  run run_hook "simple-redundant-old-primary" "stop" "$(payload stop)"
+  echo_lines
+  [ "$status" -eq 0 ]
+  run run_hook "simple-redundant-old-secondary" "stop" "$(payload stop)"
   echo_lines
   [ "$status" -eq 0 ]
 }
 
-@test "Stop Old MySQLs" {
-  run run_hook "simple-redundant-old-primary" "default-stop" "$(payload default/stop)"
+@test "Stop New ${service_name} First" {
+  run run_hook "simple-redundant-new-primary" "stop" "$(payload stop)"
   echo_lines
   [ "$status" -eq 0 ]
-  run run_hook "simple-redundant-old-secondary" "default-stop" "$(payload default/stop)"
-  echo_lines
-  [ "$status" -eq 0 ]
-}
-
-@test "Stop New MySQLs" {
-  run run_hook "simple-redundant-new-primary" "default-stop" "$(payload default/stop)"
-  echo_lines
-  [ "$status" -eq 0 ]
-  run run_hook "simple-redundant-new-secondary" "default-stop" "$(payload default/stop)"
+  run run_hook "simple-redundant-new-secondary" "stop" "$(payload stop)"
   echo_lines
   [ "$status" -eq 0 ]
 }
 
 @test "Redundant Configure Old Containers" {
-  run run_hook "simple-redundant-old-primary" "default-redundant-configure" "$(payload default/redundant/configure-primary)"
+  run run_hook "simple-redundant-old-primary" "redundant-configure" "$(payload redundant-configure-primary)"
   echo_lines
   [ "$status" -eq 0 ]
-  run run_hook "simple-redundant-old-secondary" "default-redundant-configure" "$(payload default/redundant/configure-secondary)"
+  run run_hook "simple-redundant-old-secondary" "redundant-configure" "$(payload redundant-configure-secondary)"
   echo_lines
   [ "$status" -eq 0 ]
-  run run_hook "simple-redundant-old-monitor" "monitor-redundant-configure" "$(payload monitor/redundant/configure)"
+  run run_hook "simple-redundant-old-arbitrator" "redundant-configure" "$(payload redundant-configure-arbitrator)"
   echo_lines
   [ "$status" -eq 0 ]
+  sleep 10
 }
 
 @test "Redundant Configure New Containers" {
-  run run_hook "simple-redundant-new-primary" "default-redundant-configure" "$(payload default/redundant/configure-primary-new)"
+  run run_hook "simple-redundant-new-primary" "redundant-configure" "$(payload redundant-configure-primary-new)"
   echo_lines
   [ "$status" -eq 0 ]
-  run run_hook "simple-redundant-new-secondary" "default-redundant-configure" "$(payload default/redundant/configure-secondary-new)"
+  run run_hook "simple-redundant-new-secondary" "redundant-configure" "$(payload redundant-configure-secondary-new)"
   echo_lines
   [ "$status" -eq 0 ]
-  run run_hook "simple-redundant-new-monitor" "monitor-redundant-configure" "$(payload monitor/redundant/configure-new)"
+  run run_hook "simple-redundant-new-arbitrator" "redundant-configure" "$(payload redundant-configure-arbitrator-new)"
+  echo_lines
+  [ "$status" -eq 0 ]
+  sleep 10
+}
+
+@test "Restop Old ${service_name}" {
+  run run_hook "simple-redundant-old-primary" "stop" "$(payload stop)"
+  echo_lines
+  [ "$status" -eq 0 ]
+  run run_hook "simple-redundant-old-secondary" "stop" "$(payload stop)"
   echo_lines
   [ "$status" -eq 0 ]
 }
 
-@test "Ensure Old MySQLs Are Stopped" {
-  while docker exec "simple-redundant-old-primary" bash -c "ps aux | grep [m]ysqld"
-  do
-    sleep 1
-  done
-  while docker exec "simple-redundant-old-secondary" bash -c "ps aux | grep [m]ysqld"
-  do
-    sleep 1
-  done
-}
-
-@test "Start Old MySQL Cluster" {
-  run run_hook "simple-redundant-old-primary" "default-start" "$(payload default/start)"
+@test "Restop New ${service_name}" {
+  run run_hook "simple-redundant-new-primary" "stop" "$(payload stop)"
   echo_lines
   [ "$status" -eq 0 ]
-  until docker exec "simple-redundant-old-primary" bash -c "ps aux | grep [m]ysqld"
-  do
-    sleep 1
-  done
-  until docker exec "simple-redundant-old-primary" bash -c "nc 192.168.0.2 3306 < /dev/null"
-  do
-    sleep 1
-  done
-  run run_hook "simple-redundant-old-secondary" "default-start" "$(payload default/start)"
-  echo_lines
-  [ "$status" -eq 0 ]
-  until docker exec "simple-redundant-old-secondary" bash -c "ps aux | grep [m]ysqld"
-  do
-    sleep 1
-  done
-  until docker exec "simple-redundant-old-secondary" bash -c "nc 192.168.0.3 3306 < /dev/null"
-  do
-    sleep 1
-  done
-  run run_hook "simple-redundant-old-monitor" "monitor-start" "$(payload monitor/start)"
-  echo_lines
-  [ "$status" -eq 0 ]
-  until docker exec "simple-redundant-old-monitor" bash -c "ps aux | grep [g]arbd"
-  do
-    sleep 1
-  done
-}
-
-@test "Ensure New MySQLs Are Stopped" {
-  while docker exec "simple-redundant-new-primary" bash -c "ps aux | grep [m]ysqld"
-  do
-    sleep 1
-  done
-  while docker exec "simple-redundant-new-secondary" bash -c "ps aux | grep [m]ysqld"
-  do
-    sleep 1
-  done
-}
-
-@test "Start New SSHD" {
-  # start ssh server
-  run run_hook "simple-redundant-new-primary" "default-start_sshd" "$(payload default/start_sshd)"
-  echo_lines
-  [ "$status" -eq 0 ]
-  # start ssh server
-  run run_hook "simple-redundant-new-secondary" "default-start_sshd" "$(payload default/start_sshd)"
-  echo_lines
-  [ "$status" -eq 0 ]
-  until docker exec "simple-redundant-new-primary" bash -c "ps aux | grep [s]shd"
-  do
-    sleep 1
-  done
-  until docker exec "simple-redundant-new-secondary" bash -c "ps aux | grep [s]shd"
-  do
-    sleep 1
-  done
-}
-
-@test "Insert Old MySQL Data" {
-  run docker exec "simple-redundant-old-primary" bash -c "/data/bin/mysql -u gonano -ppassword -e 'CREATE TABLE test_table (id INT(64) AUTO_INCREMENT PRIMARY KEY, value INT(64))' gonano 2> /dev/null"
-  echo_lines
-  [ "$status" -eq 0 ]
-  run docker exec "simple-redundant-old-primary" bash -c "/data/bin/mysql -u gonano -ppassword -e 'INSERT INTO test_table VALUES (1, 1)' gonano 2> /dev/null"
-  echo_lines
-  [ "$status" -eq 0 ]
-  run docker exec "simple-redundant-old-primary" bash -c "/data/bin/mysql -u gonano -ppassword -e 'SELECT * FROM test_table' gonano 2> /dev/null"
-  echo_lines
-  [ "${lines[1]}" = "1	1" ]
-  [ "$status" -eq 0 ]
-}
-
-@test "Redundant Old Pre-Export" {
-  run run_hook "simple-redundant-old-primary" "default-redundant-pre_export" "$(payload default/redundant/pre_export)"
+  run run_hook "simple-redundant-new-secondary" "stop" "$(payload stop)"
   echo_lines
   [ "$status" -eq 0 ]
 }
 
-@test "Insert Secondary MySQL Data" {
-  run docker exec "simple-redundant-old-secondary" bash -c "/data/bin/mysql -u gonano -ppassword -e 'INSERT INTO test_table VALUES (2, 2)' gonano 2> /dev/null"
+@test "Ensure Old ${service_name} Are Stopped" {
+  wait_for_stop "simple-redundant-old-primary"
+  verify_stopped "simple-redundant-old-primary"
+  wait_for_stop "simple-redundant-old-secondary"
+  verify_stopped "simple-redundant-old-secondary"
+}
+
+@test "Start Old ${service_name} Cluster" {
+  run run_hook "simple-redundant-old-primary" "redundant-start" "$(payload redundant-start)"
   echo_lines
   [ "$status" -eq 0 ]
-  run docker exec "simple-redundant-old-secondary" bash -c "/data/bin/mysql -u gonano -ppassword -e 'SELECT * FROM test_table' gonano 2> /dev/null"
+  run run_hook "simple-redundant-old-secondary" "redundant-start" "$(payload redundant-start)"
   echo_lines
-  [ "${lines[1]}" = "1	1" ]
-  [ "${lines[2]}" = "2	2" ]
+  [ "$status" -eq 0 ]
+  run run_hook "simple-redundant-old-arbitrator" "redundant-start-arbitrator" "$(payload redundant-start-arbitrator)"
+  echo_lines
+  [ "$status" -eq 0 ]
+  wait_for_running "simple-redundant-old-primary"
+  wait_for_listening "simple-redundant-old-primary" "192.168.0.2" ${default_port}
+  wait_for_running "simple-redundant-old-secondary"
+  wait_for_listening "simple-redundant-old-secondary" "192.168.0.3" ${default_port}
+  wait_for_arbitrator_running "simple-redundant-old-arbitrator"
+}
+
+@test "Ensure New ${service_name} Are Stopped" {
+  wait_for_stop "simple-redundant-new-primary"
+  verify_stopped "simple-redundant-new-primary"
+  wait_for_stop "simple-redundant-new-secondary"
+  verify_stopped "simple-redundant-new-secondary"
+}
+
+@test "Insert Old ${service_name} Data" {
+  insert_test_data "simple-redundant-old-primary" "192.168.0.2" ${default_port} "mykey" "data"
+  verify_test_data "simple-redundant-old-primary" "192.168.0.2" ${default_port} "mykey" "data"
+}
+
+@test "Run Import Prep" {
+  if [ ! -f ../src/import-prep ]; then
+    skip "import-prep hook isn't defined"
+  fi 
+  run run_hook "simple-redundant-new-primary" "redundant-import-prep" "$(payload redundant-import-prep-primary)"
+  echo_lines
+  [ "$status" -eq 0 ]
+  run run_hook "simple-redundant-new-secondary" "redundant-import-prep" "$(payload redundant-import-prep-secondary)"
+  echo_lines
   [ "$status" -eq 0 ]
 }
 
-@test "Restop Old MySQLs" {
-  run run_hook "simple-redundant-old-primary" "default-stop" "$(payload default/stop)"
+@test "Run Export Prep" {
+  if [ ! -f ../src/Export-prep ]; then
+    skip "Export-prep hook isn't defined"
+  fi 
+  run run_hook "simple-redundant-old-primary" "redundant-export-prep" "$(payload redundant-export-prep-primary)"
   echo_lines
   [ "$status" -eq 0 ]
-  run run_hook "simple-redundant-old-secondary" "default-stop" "$(payload default/stop)"
-  echo_lines
-  [ "$status" -eq 0 ]
-}
-
-@test "Ensure Old MySQLs Are Stopped" {
-  while docker exec "simple-redundant-old-primary" bash -c "ps aux | grep [m]ysqld"
-  do
-    sleep 1
-  done
-  while docker exec "simple-redundant-old-secondary" bash -c "ps aux | grep [m]ysqld"
-  do
-    sleep 1
-  done
-}
-
-@test "Redundant Old Export" {
-  run run_hook "simple-redundant-old-primary" "default-redundant-export" "$(payload default/redundant/export)"
+  run run_hook "simple-redundant-old-secondary" "redundant-export-prep" "$(payload redundant-export-prep-secondary)"
   echo_lines
   [ "$status" -eq 0 ]
 }
 
-@test "Stop New SSHD" {
-  # stop ssh server
-  run run_hook "simple-redundant-new-primary" "default-stop_sshd" "$(payload default/stop_sshd)"
+@test "Import Live ${service_name}" {
+  if [ ! -f ../src/import-live ]; then
+    skip "import-live hook isn't defined"
+  fi 
+  run run_hook "simple-redundant-new-primary" "redundant-import-live" "$(payload redundant-import-live-primary)"
   echo_lines
   [ "$status" -eq 0 ]
-  # stop ssh server
-  run run_hook "simple-redundant-new-secondary" "default-stop_sshd" "$(payload default/stop_sshd)"
+  run run_hook "simple-redundant-new-secondary" "redundant-import-live" "$(payload redundant-import-live-secondary)"
   echo_lines
   [ "$status" -eq 0 ]
-  while docker exec "simple-redundant-new-primary" bash -c "ps aux | grep [s]shd"
-  do
-    sleep 1
-  done
-  while docker exec "simple-redundant-new-secondary" bash -c "ps aux | grep [s]shd"
-  do
-    sleep 1
-  done
-}
-@test "Start New MySQL Cluster" {
-  run run_hook "simple-redundant-new-primary" "default-start" "$(payload default/start)"
-  echo_lines
-  [ "$status" -eq 0 ]
-  until docker exec "simple-redundant-new-primary" bash -c "ps aux | grep [m]ysqld"
-  do
-    sleep 1
-  done
-  until docker exec "simple-redundant-new-primary" bash -c "nc 192.168.0.6 3306 < /dev/null"
-  do
-    sleep 1
-  done
-  run run_hook "simple-redundant-new-secondary" "default-start" "$(payload default/start)"
-  echo_lines
-  [ "$status" -eq 0 ]
-  until docker exec "simple-redundant-new-secondary" bash -c "ps aux | grep [m]ysqld"
-  do
-    sleep 1
-  done
-  until docker exec "simple-redundant-new-secondary" bash -c "nc 192.168.0.7 3306 < /dev/null"
-  do
-    sleep 1
-  done
-  run run_hook "simple-redundant-new-monitor" "monitor-start" "$(payload monitor/start)"
-  echo_lines
-  [ "$status" -eq 0 ]
-  until docker exec "simple-redundant-new-monitor" bash -c "ps aux | grep [g]arbd"
-  do
-    sleep 1
-  done
 }
 
-@test "Verify New MySQL Data" {
-  run docker exec "simple-redundant-new-primary" bash -c "/data/bin/mysql -u gonano -ppassword -e 'SELECT * FROM test_table' gonano 2> /dev/null"
+@test "Export Live ${service_name}" {
+  if [ ! -f ../src/export-live ]; then
+    skip "export-live hook isn't defined"
+  fi 
+  run run_hook "simple-redundant-old-primary" "redundant-export-live" "$(payload redundant-export-live-primary)"
   echo_lines
-  [ "${lines[1]}" = "1	1" ]
-  [ "${lines[2]}" = "2	2" ]
   [ "$status" -eq 0 ]
+  run run_hook "simple-redundant-old-secondary" "redundant-export-live" "$(payload redundant-export-live-secondary)"
+  echo_lines
+  [ "$status" -eq 0 ]
+}
+
+@test "Update Old ${service_name} Data" {
+  update_test_data "simple-redundant-old-primary" "192.168.0.2" ${default_port} "mykey" "date"
+  verify_test_data "simple-redundant-old-primary" "192.168.0.2" ${default_port} "mykey" "date"
+}
+
+@test "Stop Old ${service_name}" {
+  run run_hook "simple-redundant-old-primary" "redundant-stop" "$(payload redundant-stop)"
+  [ "$status" -eq 0 ]
+    run run_hook "simple-redundant-old-secondary" "redundant-stop" "$(payload redundant-stop)"
+  [ "$status" -eq 0 ]
+    run run_hook "simple-redundant-old-arbitrator" "redundant-stop-arbitrator" "$(payload redundant-stop-arbitrator)"
+  [ "$status" -eq 0 ]
+  wait_for_stop "simple-redundant-old-primary"
+  verify_stopped "simple-redundant-old-primary"
+  wait_for_stop "simple-redundant-old-secondary"
+  verify_stopped "simple-redundant-old-secondary"
+}
+
+@test "Export Final ${service_name}" {
+  if [ ! -f ../src/export-final ]; then
+    skip "export-final hook isn't defined"
+  fi 
+  run run_hook "simple-redundant-old-primary" "redundant-export-final" "$(payload redundant-export-final-primary)"
+  echo_lines
+  [ "$status" -eq 0 ]
+  run run_hook "simple-redundant-old-secondary" "redundant-export-final" "$(payload redundant-export-final-secondary)"
+  echo_lines
+  [ "$status" -eq 0 ]
+}
+
+@test "Import Final ${service_name}" {
+  if [ ! -f ../src/import-final ]; then
+    skip "import-final hook isn't defined"
+  fi 
+  run run_hook "simple-redundant-new-primary" "redundant-import-final" "$(payload redundant-import-final-primary)"
+  echo_lines
+  [ "$status" -eq 0 ]
+  run run_hook "simple-redundant-new-secondary" "redundant-import-final" "$(payload redundant-import-final-secondary)"
+  echo_lines
+  [ "$status" -eq 0 ]
+}
+
+@test "Export Clean" {
+  if [ ! -f ../src/export-clean ]; then
+    skip "export-clean hook isn't defined"
+  fi 
+  run run_hook "simple-redundant-old-primary" "redundant-export-clean" "$(payload redundant-export-clean-primary)"
+  echo_lines
+  [ "$status" -eq 0 ]
+  run run_hook "simple-redundant-old-secondary" "redundant-export-clean" "$(payload redundant-export-clean-secondary)"
+  echo_lines
+  [ "$status" -eq 0 ]
+}
+
+@test "Import Clean" {
+  if [ ! -f ../src/import-clean ]; then
+    skip "import-clean hook isn't defined"
+  fi 
+  run run_hook "simple-redundant-new-primary" "redundant-import-clean" "$(payload redundant-import-clean-primary)"
+  echo_lines
+  [ "$status" -eq 0 ]
+  run run_hook "simple-redundant-new-secondary" "redundant-import-clean" "$(payload redundant-import-clean-secondary)"
+  echo_lines
+  [ "$status" -eq 0 ]
+}
+
+@test "Start New ${service_name} Cluster" {
+  run run_hook "simple-redundant-new-primary" "redundant-start" "$(payload redundant-start)"
+  echo_lines
+  [ "$status" -eq 0 ]
+  run run_hook "simple-redundant-new-secondary" "redundant-start" "$(payload redundant-start)"
+  echo_lines
+  [ "$status" -eq 0 ]
+  run run_hook "simple-redundant-new-arbitrator" "redundant-start-arbitrator" "$(payload redundant-start-arbitrator)"
+  echo_lines
+  [ "$status" -eq 0 ]
+  wait_for_running "simple-redundant-new-primary"
+  wait_for_listening "simple-redundant-new-primary" "192.168.0.6" ${default_port}
+  wait_for_running "simple-redundant-new-secondary"
+  wait_for_listening "simple-redundant-new-secondary" "192.168.0.7" ${default_port}
+  wait_for_arbitrator_running "simple-redundant-new-arbitrator"
+}
+
+@test "Verify New Primary ${service_name} Data" {
+  verify_test_data "simple-redundant-new-primary" "192.168.0.6" ${default_port} "mykey" "date"
+}
+
+@test "Verify New Secondary ${service_name} Data" {
+  verify_test_data "simple-redundant-new-secondary" "192.168.0.6" ${default_port} "mykey" "date"
 }
 
 # Stop containers
 @test "Stop Old Containers" {
   stop_container "simple-redundant-old-primary"
   stop_container "simple-redundant-old-secondary"
-  stop_container "simple-redundant-old-monitor"
+  stop_container "simple-redundant-old-arbitrator"
 }
 
 @test "Stop New Containers" {
   stop_container "simple-redundant-new-primary"
   stop_container "simple-redundant-new-secondary"
-  stop_container "simple-redundant-new-monitor"
+  stop_container "simple-redundant-new-arbitrator"
 }

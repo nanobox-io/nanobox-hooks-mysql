@@ -1,0 +1,69 @@
+#!/sbin/sh
+#
+# Init script for garbd.
+#
+
+. /lib/svc/share/smf_include.sh
+
+ulimit -n 10240
+
+<%
+
+nodes = []
+
+payload[:members].each do |m|
+
+  if not m[:type] == 'arbitrator'
+    nodes << m[:local_ip]
+  end
+
+end
+
+%>
+
+NODES=(<%= nodes.join ' ' %>)
+
+ping_server() {
+  ping -s $1 64 1
+}
+
+test_port() {
+  nc $1 $2 < /dev/null
+}
+
+start(){
+  for NODE in ${NODES[@]}; do
+    if [[ $(ping_server ${NODE}) ]]; then
+      echo "Found node - $NODE"
+      if [[ $(test_port ${NODE} 3306) ]]; then
+        echo "Found running mysqld"
+        /data/bin/garbd -n garbd -a gcomm://<%= nodes.join ':4567,' %>:4567 -g <%= payload[:component][:id].delete('-') %>
+        exit $SMF_EXIT_OK
+      fi
+    fi
+  done
+}
+
+start_loop(){
+  while [[ 1 ]]
+  do
+    start
+    echo "Sleeping"
+    sleep 10
+  done
+}
+
+case "$1" in
+start)
+  start_loop
+  ;;
+stop)
+  pkill garbd
+  ;;
+*)
+  echo "Usage: $0 {start|stop}" >&2
+  exit 1
+  ;;
+esac
+
+exit $SMF_EXIT_OK

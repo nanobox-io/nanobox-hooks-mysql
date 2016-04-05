@@ -1,0 +1,56 @@
+{
+  "strategy": "warehouse",
+  "ips": {
+    "default": "192.168.0.3"
+  },
+  "warehouse": {
+    "host": "192.168.0.9",
+    "port": 8080,
+    "token": "asdlkfjsalsdjfklsjdf",
+    "backup_id": "11258593abc"
+  },
+  "users": [
+    {
+      "username": "root",
+      "password": "rootpassword",
+      "meta": {
+        "privileges": [
+          {
+            "privilege": "ALL PRIVILEGES",
+            "on": "*.*",
+            "grant": true
+          }
+        ],
+        "databases": [
+
+        ]
+      }
+    },
+    {
+      "username": "nanobox",
+      "password": "password",
+      "meta": {
+        "privileges": [
+          {
+            "privilege": "ALL PRIVILEGES",
+            "on": "gonano.*",
+            "grant": true
+          },
+          {
+            "privilege": "PROCESS",
+            "on": "*.*",
+            "grant": false
+          },
+          {
+            "privilege": "SUPER",
+            "on": "*.*",
+            "grant": false
+          }
+        ],
+        "databases": [
+          "gonano"
+        ]
+      }
+    }
+  ]
+}
