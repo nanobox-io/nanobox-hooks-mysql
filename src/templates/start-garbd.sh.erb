@@ -21,7 +21,7 @@ ping_server() {
 }
 
 test_port() {
-  nc $1 $2 < /dev/null
+  nc -q 1 $1 $2 < /dev/null
 }
 
 start() {
