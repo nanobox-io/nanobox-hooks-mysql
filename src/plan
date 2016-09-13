@@ -15,8 +15,9 @@ config = converge( CONFIG_DEFAULTS, payload[:config] )
 users = config[:users]
 
 plan = {
-  redundant: true,
+  redundant: false,
   horizontal: false,
+  user: "nanobox",
   users: users,
   ips: [:default],
   port: 3306,

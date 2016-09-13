@@ -82,57 +82,64 @@ verify_test_data() {
 }
 
 verify_plan() {
-  [ "${lines[0]}"  =  "{" ]
-  [ "${lines[1]}"  =  "  \"redundant\": true," ]
-  [ "${lines[2]}"  =  "  \"horizontal\": false," ]
-  [ "${lines[3]}"  =  "  \"users\": [" ]
-  [ "${lines[4]}"  =  "    {" ]
-  [ "${lines[5]}"  =  "      \"username\": \"root\"," ]
-  [ "${lines[6]}"  =  "      \"meta\": {" ]
-  [ "${lines[7]}"  =  "        \"privileges\": [" ]
-  [ "${lines[8]}"  =  "          {" ]
-  [ "${lines[9]}"  =  "            \"privilege\": \"ALL PRIVILEGES\"," ]
-  [ "${lines[10]}" =  "            \"on\": \"*.*\"," ]
-  [ "${lines[11]}" =  "            \"with_grant\": true" ]
-  [ "${lines[12]}" =  "          }" ]
-  [ "${lines[13]}" =  "        ]," ]
-  [ "${lines[14]}" =  "        \"databases\": [" ]
-  [ "${lines[15]}" =  "        ]" ]
-  [ "${lines[16]}" =  "      }" ]
-  [ "${lines[17]}" =  "    }," ]
-  [ "${lines[18]}" =  "    {" ]
-  [ "${lines[19]}" =  "      \"username\": \"nanobox\"," ]
-  [ "${lines[20]}" =  "      \"meta\": {" ]
-  [ "${lines[21]}" =  "        \"privileges\": [" ]
-  [ "${lines[22]}" =  "          {" ]
-  [ "${lines[23]}" =  "            \"privilege\": \"ALL PRIVILEGES\"," ]
-  [ "${lines[24]}" =  "            \"on\": \"gonano.*\"," ]
-  [ "${lines[25]}" =  "            \"with_grant\": true" ]
-  [ "${lines[26]}" =  "          }," ]
-  [ "${lines[27]}" =  "          {" ]
-  [ "${lines[28]}" =  "            \"privilege\": \"PROCESS\"," ]
-  [ "${lines[29]}" =  "            \"on\": \"*.*\"," ]
-  [ "${lines[30]}" =  "            \"with_grant\": false" ]
-  [ "${lines[31]}" =  "          }," ]
-  [ "${lines[32]}" =  "          {" ]
-  [ "${lines[33]}" =  "            \"privilege\": \"SUPER\"," ]
-  [ "${lines[34]}" =  "            \"on\": \"*.*\"," ]
-  [ "${lines[35]}" =  "            \"with_grant\": false" ]
-  [ "${lines[36]}" =  "          }" ]
-  [ "${lines[37]}" =  "        ]," ]
-  [ "${lines[38]}" =  "        \"databases\": [" ]
-  [ "${lines[39]}" =  "          \"gonano\"" ]
-  [ "${lines[40]}" =  "        ]" ]
-  [ "${lines[41]}" =  "      }" ]
-  [ "${lines[42]}" =  "    }" ]
-  [ "${lines[43]}" =  "  ]," ]
-  [ "${lines[44]}" =  "  \"ips\": [" ]
-  [ "${lines[45]}" =  "    \"default\"" ]
-  [ "${lines[46]}" =  "  ]," ]
-  [ "${lines[47]}" =  "  \"port\": 3306," ]
-  [ "${lines[48]}" =  "  \"behaviors\": [" ]
-  [ "${lines[49]}" =  "    \"migratable\"," ]
-  [ "${lines[50]}" =  "    \"backupable\"" ]
-  [ "${lines[51]}" =  "  ]" ]
-  [ "${lines[52]}" =  "}" ]
+
+  expected=$(cat <<-END
+{
+  "redundant": false,
+  "horizontal": false,
+  "user": "nanobox",
+  "users": [
+    {
+      "username": "root",
+      "meta": {
+        "privileges": [
+          {
+            "privilege": "ALL PRIVILEGES",
+            "on": "*.*",
+            "with_grant": true
+          }
+        ],
+        "databases": [
+
+        ]
+      }
+    },
+    {
+      "username": "nanobox",
+      "meta": {
+        "privileges": [
+          {
+            "privilege": "ALL PRIVILEGES",
+            "on": "gonano.*",
+            "with_grant": true
+          },
+          {
+            "privilege": "PROCESS",
+            "on": "*.*",
+            "with_grant": false
+          },
+          {
+            "privilege": "SUPER",
+            "on": "*.*",
+            "with_grant": false
+          }
+        ],
+        "databases": [
+          "gonano"
+        ]
+      }
+    }
+  ],
+  "ips": [
+    "default"
+  ],
+  "port": 3306,
+  "behaviors": [
+    "migratable",
+    "backupable"
+  ]
+}
+END)
+
+  [ "$output" = "$expected" ]
 }
