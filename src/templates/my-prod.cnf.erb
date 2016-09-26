@@ -1,11 +1,16 @@
 <%
 # MySQL my.cnf tuning
-MEMCAP = memcap
+MEMCAP = case dedicated
+  when true then
+    memcap
+  else
+    memcap * 0.16
+end
 
 # innodb_buffer_pool_size
 INNODB_BUFFER_POOL_SIZE = case MEMCAP
   when 0..132 then "32M"
-  when 133..264 then "#{MEMCAP / 2}M"
+  when 133..264 then "#{(MEMCAP / 2).to_i}M"
   else
     "#{(MEMCAP * 0.65).to_i}M"
 end
