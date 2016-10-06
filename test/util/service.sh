@@ -75,6 +75,7 @@ verify_test_data() {
   port=$3
   key=$4
   data=$5
+  sleep 1
   run docker exec ${container} bash -c "/data/bin/mysql -u nanobox -ppassword -e 'SELECT value FROM test_table WHERE id = '\"'\"'${key}'\"'\"'' gonano 2> /dev/null"
   echo_lines
   [ "${lines[1]}" = "${data}" ]
