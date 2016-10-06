@@ -94,7 +94,7 @@ innodb_data_home_dir            = /data/var/db/mysql
 innodb_log_group_home_dir       = /data/var/db/mysql
 innodb_data_file_path           = ibdata1:100M:autoextend
 innodb_buffer_pool_size         = <%= config[:innodb_buffer_pool_size] || INNODB_BUFFER_POOL_SIZE %>
-innodb_log_file_size            = 400M
+innodb_log_file_size            = 100M
 innodb_additional_mem_pool_size = <%= config[:innodb_additional_mem_pool_size] %>
 innodb_log_buffer_size          = <%= config[:innodb_log_buffer_size] %>
 innodb_flush_log_at_trx_commit  = <%= config[:innodb_flush_log_at_trx_commit] %>

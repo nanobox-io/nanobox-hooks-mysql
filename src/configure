@@ -24,8 +24,13 @@ end
 if payload[:platform] != 'local'
 
   # Setup root keys for data migrations
+  directory '/root/' do
+    mode 0700
+  end
+
   directory '/root/.ssh' do
     recursive true
+    mode 0700
   end
 
   file '/root/.ssh/id_rsa' do
