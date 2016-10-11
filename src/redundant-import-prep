@@ -7,6 +7,19 @@ require 'bundler/setup'
 # load hookit/setup to bootstrap hookit and import the dsl
 require 'hookit/setup'
 
+# Ensure the database isn't running before the import/export happens
+service 'db' do
+  action :disable
+  init :runit
+  only_if {`sv status db` =~ /^run/}
+  not_if { !Dir.exist?('/etc/service/db') }
+end
+
+directory '/etc/service/db' do
+  action :delete
+  not_if { !Dir.exist?('/etc/service/db') }
+end
+
 # Import service (and start)
 directory '/etc/service/ssh' do
   recursive true
