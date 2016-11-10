@@ -1,0 +1,59 @@
+{
+  "platform": "local",
+  "config": {
+  },
+  "member": {
+    "local_ip": "192.168.0.2",
+    "uid": "1",
+    "role": "primary"
+  },
+  "component": {
+    "name": "willy-walrus",
+    "uid": "mysql1",
+    "id": "9097d0a7-7e02-4be5-bce1-3d7cb1189488"
+  },
+  "users": [
+    {
+      "username": "root",
+      "password": "rootpassword",
+      "meta": {
+        "privileges": [
+          {
+            "privilege": "ALL PRIVILEGES",
+            "on": "*.*",
+            "grant": true
+          }
+        ],
+        "databases": [
+
+        ]
+      }
+    },
+    {
+      "username": "nanobox",
+      "password": "password",
+      "meta": {
+        "privileges": [
+          {
+            "privilege": "ALL PRIVILEGES",
+            "on": "gonano.*",
+            "grant": true
+          },
+          {
+            "privilege": "PROCESS",
+            "on": "*.*",
+            "grant": false
+          },
+          {
+            "privilege": "SUPER",
+            "on": "*.*",
+            "grant": false
+          }
+        ],
+        "databases": [
+          "gonano"
+        ]
+      }
+    }
+  ]
+}
