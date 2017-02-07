@@ -10,7 +10,7 @@ require 'json'
 
 include Hooky::Mysql
 
-config = converge( CONFIG_DEFAULTS, payload[:config] )
+config = converge( CONFIG_DEFAULTS, payload[:config] || {} )
 
 users = config[:users]
 

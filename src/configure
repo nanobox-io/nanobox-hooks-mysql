@@ -8,7 +8,7 @@ require 'bundler/setup'
 require 'hookit/setup'
 
 include Hooky::Mysql
-config = converge( CONFIG_DEFAULTS, payload[:config] )
+config = converge( CONFIG_DEFAULTS, payload[:config] || {} )
 
 dedicated = payload[:component][:dedicated] || false
 
