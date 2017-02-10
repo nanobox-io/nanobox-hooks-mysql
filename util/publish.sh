@@ -14,7 +14,7 @@ echo "Generating tarball..."
 tar -cvz -C $project_dir/src -f $project_dir/.build/mysql-${stability}.tgz .
 
 echo "Generating md5..."
-cat $project_dir/.build/mysql-${stability}.tgz  ${MD5} | awk '{print $1}' > $project_dir/.build/mysql-${stability}.md5
+cat $project_dir/.build/mysql-${stability}.tgz | ${MD5} | awk '{print $1}' > $project_dir/.build/mysql-${stability}.md5
 
 echo "Uploading builds to s3..."
 aws s3 sync \
