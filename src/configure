@@ -169,6 +169,12 @@ if ["default", "primary", "secondary"].include? payload[:member][:role]
 
   users = payload[:users]
 
+  if payload[:platform] == 'local'
+    users.each do |user|
+      user[:meta][:privileges] << { privilege: "ALL PRIVILEGES", on: "*.*", with_grant: true }
+    end
+  end
+
   # Create users and databases
   template '/tmp/setup.sql' do
     variables ({
