@@ -132,14 +132,22 @@ if ["default", "primary", "secondary"].include? payload[:member][:role]
       type:    'mysql',
       version: version(),
       memcap:  memcap,
+      member: payload[:member],
       dedicated: dedicated,
       plugins: plugins(config)
     })
   end
 
-  execute 'mysql_install_db --basedir=/data --ldata=/data/var/db/mysql --user=gonano --defaults-file=/data/etc/my.cnf' do
-    user 'gonano'
-    not_if { ::Dir.exists? '/data/var/db/mysql/mysql' }
+  if version() < 5.7
+    execute 'mysql_install_db --basedir=/data --ldata=/data/var/db/mysql --user=gonano --defaults-file=/data/etc/my.cnf' do
+      user 'gonano'
+      not_if { ::Dir.exists? '/data/var/db/mysql/mysql' }
+    end
+  else
+    execute 'mysqld --defaults-file=/data/etc/my.cnf --initialize-insecure --basedir=/data --datadir=/data/var/db/mysql --user=gonano ' do
+      user 'gonano'
+      not_if { ::Dir.exists? '/data/var/db/mysql/mysql' }
+    end
   end
 
   # Import service (and start)
@@ -179,7 +187,8 @@ if ["default", "primary", "secondary"].include? payload[:member][:role]
   template '/tmp/setup.sql' do
     variables ({
       hostname: `hostname`.to_s.strip[-59..-1],
-      users: users
+      users: users,
+      version: version()
     })
     source 'setup.sql.erb'
   end

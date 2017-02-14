@@ -43,6 +43,7 @@ Vagrant.configure(2) do |config|
     echo "Pulling the build image"
     docker pull nanobox/mysql:5.5
     docker pull nanobox/mysql:5.6
+    docker pull nanobox/mysql:5.7
   SCRIPT
 
   # create an adhoc network

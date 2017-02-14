@@ -26,6 +26,7 @@ echo_lines() {
 @test "Configure Old Containers" {
   run run_hook "simple-redundant-old-primary" "configure" "$(payload configure-primary)"
   echo_lines
+  docker exec simple-redundant-old-primary cat /var/log/mysql/error.log
   [ "$status" -eq 0 ]
   run run_hook "simple-redundant-old-secondary" "configure" "$(payload configure-secondary)"
   echo_lines
