@@ -101,10 +101,12 @@ start(){
     if [[ ${MY_SEQNO} -ne "-2" && ${NODE_SEQNO} -ne "-2" ]]; then
       if [[ ${MY_SEQNO} -gt ${NODE_SEQNO} ]]; then
         # echo "starting with --wsrep-new-cluster"
+        sed -i 's/safe_to_bootstrap: 0/safe_to_bootstrap: 1/' /data/var/db/mysql/grastate.dat
         exec /data/sbin/mysqld --defaults-file=/data/etc/my.cnf --wsrep-new-cluster --pid-file=${PIDFILE}
       fi
       if [[ ${MY_SEQNO} -eq ${NODE_SEQNO} && ${HEAD_NODE} = "yes" ]]; then
         # echo "head node, starting with --wsrep-new-cluster"
+        sed -i 's/safe_to_bootstrap: 0/safe_to_bootstrap: 1/' /data/var/db/mysql/grastate.dat
         exec /data/sbin/mysqld --defaults-file=/data/etc/my.cnf --wsrep-new-cluster --pid-file=${PIDFILE}
       fi
     fi

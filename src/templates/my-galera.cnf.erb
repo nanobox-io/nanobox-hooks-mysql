@@ -95,7 +95,9 @@ innodb_log_group_home_dir       = /data/var/db/mysql
 innodb_data_file_path           = ibdata1:100M:autoextend
 innodb_buffer_pool_size         = <%= config[:innodb_buffer_pool_size] || INNODB_BUFFER_POOL_SIZE %>
 innodb_log_file_size            = 100M
+<% if version < 5.7 -%>
 innodb_additional_mem_pool_size = <%= config[:innodb_additional_mem_pool_size] %>
+<% end %>
 innodb_log_buffer_size          = <%= config[:innodb_log_buffer_size] %>
 innodb_flush_log_at_trx_commit  = <%= config[:innodb_flush_log_at_trx_commit] %>
 innodb_lock_wait_timeout        = <%= config[:innodb_lock_wait_timeout] %>
@@ -120,7 +122,9 @@ thread_cache_size         = <%= config[:thread_cache_size] || THREAD_CACHE_SIZE 
 query_cache_type          = 0
 query_cache_size          = 0
 back_log                  = <%= config[:back_log] || BACK_LOG %>
+<% if version < 5.7 -%>
 thread_concurrency        = <%= config[:thread_concurrency] || (`mpstat | tail -n +2 | wc -l`.to_i * 2 + 2) %>
+<% end %>
 tmpdir                    = /var/tmp
 max_connections           = <%= config[:max_connections] || MAX_CONNECTIONS %>
 max_allowed_packet        = <%= config[:max_allowed_packet] %>
@@ -154,8 +158,10 @@ ft_stopword_file = <%= config[:ft_stopword_file] %>
 
 # Plugin Configuration
 plugin_dir=/data/lib/mysql/plugin
+<% if version >= 5.7 -%>
 # we do not allow myisam tables with galera cluster
 plugin-load=DISABLE_MYISAM=disable_myisam.so
+<% end %>
 <% plugins.each do |plugin| -%>
 plugin-load=<%= plugin[:name] %>=<%= plugin[:soname] %>
 <% end -%>
@@ -175,6 +181,7 @@ log-bin           = /data/var/db/mysql/bin.log
 max_binlog_size   = 100M
 log-error         = /var/log/mysql/error.log
 expire_logs_days  = 7
+server_id         = <%= member[:uid] %>
 
 # Galera wsrep configuration
 wsrep_provider=/data/lib/mysql/plugin/libgalera_smm.so

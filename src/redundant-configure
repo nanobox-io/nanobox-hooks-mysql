@@ -36,6 +36,7 @@ if ["default", "primary", "secondary"].include? payload[:member][:role]
       config: config,
       type:    'mysql',
       memcap:  memcap,
+      member: payload[:member],
       dedicated: dedicated,
       version: version(),
       plugins: plugins(config)

@@ -26,10 +26,12 @@ SET PASSWORD FOR '<%= user[:username] %>' = PASSWORD('<%= user[:password] %>');
 -- GRANT SUPER ON *.* TO 'nanobox'@'%';
 
 -- remove anonymous accounts (must ensure exists before deleting)
+<% if version < 5.7 -%>
 GRANT USAGE ON *.* TO ''@'localhost';
 DROP USER ''@'localhost';
 GRANT USAGE ON *.* TO ''@'<%= hostname %>';
 DROP USER ''@'<%= hostname %>';
+<% end %>
 
 -- remove test database
 DROP DATABASE IF EXISTS test;
