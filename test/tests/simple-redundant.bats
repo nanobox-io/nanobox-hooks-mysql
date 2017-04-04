@@ -42,14 +42,14 @@ echo_lines() {
   sleep 5
 }
 
-@test "Stop Primary ${service_name}" {
-  run run_hook "simple-redundant-primary" "stop" "$(payload stop)"
+@test "Stop Secondary ${service_name}" {
+  run run_hook "simple-redundant-secondary" "stop" "$(payload stop)"
   echo_lines
   [ "$status" -eq 0 ]
 }
 
-@test "Stop Secondary ${service_name}" {
-  run run_hook "simple-redundant-secondary" "stop" "$(payload stop)"
+@test "Stop Primary ${service_name}" {
+  run run_hook "simple-redundant-primary" "stop" "$(payload stop)"
   echo_lines
   [ "$status" -eq 0 ]
 }
@@ -80,14 +80,14 @@ echo_lines() {
   sleep 10
 }
 
-@test "Restop Primary ${service_name}" {
-  run run_hook "simple-redundant-primary" "stop" "$(payload stop)"
+@test "Restop Secondary ${service_name}" {
+  run run_hook "simple-redundant-secondary" "stop" "$(payload stop)"
   echo_lines
   [ "$status" -eq 0 ]
 }
 
-@test "Restop Secondary ${service_name}" {
-  run run_hook "simple-redundant-secondary" "stop" "$(payload stop)"
+@test "Restop Primary ${service_name}" {
+  run run_hook "simple-redundant-primary" "stop" "$(payload stop)"
   echo_lines
   [ "$status" -eq 0 ]
 }
