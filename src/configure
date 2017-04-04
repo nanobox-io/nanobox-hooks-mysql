@@ -137,7 +137,7 @@ if ["default", "primary", "secondary"].include? payload[:member][:role]
     })
   end
 
-  execute 'mysql_install_db --basedir=/data --ldata=/data/var/db/mysql --user=gonano --defaults-file=/data/etc/my.cnf' do
+  execute 'mysql_install_db --basedir=/data --datadir=/data/var/db/mysql --user=gonano --defaults-file=/data/etc/my.cnf' do
     user 'gonano'
     not_if { ::Dir.exists? '/data/var/db/mysql/mysql' }
   end
