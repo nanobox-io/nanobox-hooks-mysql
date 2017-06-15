@@ -7,13 +7,15 @@ require 'bundler/setup'
 # load hookit/setup to bootstrap hookit and import the dsl
 require 'hookit/setup'
 
-payload[:members].each do |member|
+if payload[:member][:role] == 'primary'
+  payload[:members].each do |member|
 
-  if ['default', 'primary', 'secondary'].include? member[:role]
+    if ['default', 'primary', 'secondary'].include? member[:role]
 
-    execute "send diff data to new member" do
-      command "rsync --delete -e 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no' -a /data/var/db/mysql/. #{member[:local_ip]}:/data/var/db/mysql/"
+      execute "send diff data to new member" do
+        command "rsync --delete -e 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no' -a /data/var/db/mysql/. #{member[:local_ip]}:/data/var/db/mysql/"
+      end
+
     end
-
   end
 end
