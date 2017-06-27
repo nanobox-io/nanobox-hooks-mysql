@@ -26,7 +26,6 @@ echo_lines() {
 @test "Configure Old Containers" {
   run run_hook "simple-redundant-old-primary" "configure" "$(payload configure-primary)"
   echo_lines
-  docker exec simple-redundant-old-primary cat /var/log/mysql/error.log
   [ "$status" -eq 0 ]
   run run_hook "simple-redundant-old-secondary" "configure" "$(payload configure-secondary)"
   echo_lines
@@ -52,19 +51,21 @@ echo_lines() {
 }
 
 @test "Stop Old ${service_name} First" {
-  run run_hook "simple-redundant-old-primary" "stop" "$(payload stop)"
+  run run_hook "simple-redundant-old-secondary" "stop" "$(payload stop)"
   echo_lines
   [ "$status" -eq 0 ]
-  run run_hook "simple-redundant-old-secondary" "stop" "$(payload stop)"
+  sleep 1
+  run run_hook "simple-redundant-old-primary" "stop" "$(payload stop)"
   echo_lines
   [ "$status" -eq 0 ]
 }
 
 @test "Stop New ${service_name} First" {
-  run run_hook "simple-redundant-new-primary" "stop" "$(payload stop)"
+  run run_hook "simple-redundant-new-secondary" "stop" "$(payload stop)"
   echo_lines
   [ "$status" -eq 0 ]
-  run run_hook "simple-redundant-new-secondary" "stop" "$(payload stop)"
+  sleep 1
+  run run_hook "simple-redundant-new-primary" "stop" "$(payload stop)"
   echo_lines
   [ "$status" -eq 0 ]
 }
@@ -96,19 +97,21 @@ echo_lines() {
 }
 
 @test "Restop Old ${service_name}" {
-  run run_hook "simple-redundant-old-primary" "stop" "$(payload stop)"
+  run run_hook "simple-redundant-old-secondary" "stop" "$(payload stop)"
   echo_lines
   [ "$status" -eq 0 ]
-  run run_hook "simple-redundant-old-secondary" "stop" "$(payload stop)"
+  sleep 1
+  run run_hook "simple-redundant-old-primary" "stop" "$(payload stop)"
   echo_lines
   [ "$status" -eq 0 ]
 }
 
 @test "Restop New ${service_name}" {
-  run run_hook "simple-redundant-new-primary" "stop" "$(payload stop)"
+  run run_hook "simple-redundant-new-secondary" "stop" "$(payload stop)"
   echo_lines
   [ "$status" -eq 0 ]
-  run run_hook "simple-redundant-new-secondary" "stop" "$(payload stop)"
+  sleep 1
+  run run_hook "simple-redundant-new-primary" "stop" "$(payload stop)"
   echo_lines
   [ "$status" -eq 0 ]
 }
@@ -195,12 +198,6 @@ echo_lines() {
   run run_hook "simple-redundant-old-secondary" "redundant-export-live" "$(payload redundant-export-live-secondary)"
   echo_lines
   [ "$status" -eq 0 ]
-
-  run docker exec "simple-redundant-new-primary" bash -c "[[ ! -d /root/data ]]"
-  [ "$status" -eq 0 ]
-
-  run docker exec "simple-redundant-new-secondary" bash -c "[[ ! -d /root/data ]]"
-  [ "$status" -eq 0 ]
 }
 
 @test "Update Old ${service_name} Data" {
@@ -209,11 +206,13 @@ echo_lines() {
 }
 
 @test "Stop Old ${service_name}" {
+  run run_hook "simple-redundant-old-secondary" "redundant-stop" "$(payload redundant-stop)"
+  [ "$status" -eq 0 ]
+  sleep 1
+  run run_hook "simple-redundant-old-arbitrator" "redundant-stop-arbitrator" "$(payload redundant-stop-arbitrator)"
+  [ "$status" -eq 0 ]
+  sleep 1
   run run_hook "simple-redundant-old-primary" "redundant-stop" "$(payload redundant-stop)"
-  [ "$status" -eq 0 ]
-    run run_hook "simple-redundant-old-secondary" "redundant-stop" "$(payload redundant-stop)"
-  [ "$status" -eq 0 ]
-    run run_hook "simple-redundant-old-arbitrator" "redundant-stop-arbitrator" "$(payload redundant-stop-arbitrator)"
   [ "$status" -eq 0 ]
   wait_for_stop "simple-redundant-old-primary"
   verify_stopped "simple-redundant-old-primary"
@@ -230,12 +229,6 @@ echo_lines() {
   [ "$status" -eq 0 ]
   run run_hook "simple-redundant-old-secondary" "redundant-export-final" "$(payload redundant-export-final-secondary)"
   echo_lines
-  [ "$status" -eq 0 ]
-  
-  run docker exec "simple-redundant-new-primary" bash -c "[[ ! -d /root/data ]]"
-  [ "$status" -eq 0 ]
-
-  run docker exec "simple-redundant-new-secondary" bash -c "[[ ! -d /root/data ]]"
   [ "$status" -eq 0 ]
 }
 
@@ -276,13 +269,13 @@ echo_lines() {
 }
 
 @test "Start New ${service_name} Cluster" {
-  run run_hook "simple-redundant-new-primary" "redundant-start" "$(payload redundant-start)"
+  run run_hook "simple-redundant-new-primary" "redundant-start" "$(payload redundant-start-new)"
   echo_lines
   [ "$status" -eq 0 ]
-  run run_hook "simple-redundant-new-secondary" "redundant-start" "$(payload redundant-start)"
+  run run_hook "simple-redundant-new-secondary" "redundant-start" "$(payload redundant-start-new)"
   echo_lines
   [ "$status" -eq 0 ]
-  run run_hook "simple-redundant-new-arbitrator" "redundant-start-arbitrator" "$(payload redundant-start-arbitrator)"
+  run run_hook "simple-redundant-new-arbitrator" "redundant-start-arbitrator" "$(payload redundant-start-arbitrator-new)"
   echo_lines
   [ "$status" -eq 0 ]
   wait_for_running "simple-redundant-new-primary"
