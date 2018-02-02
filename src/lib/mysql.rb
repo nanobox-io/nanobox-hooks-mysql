@@ -114,6 +114,7 @@ module Hooky
       binlog:                          {type: :on_off, default: nil},
       event_scheduler:                 {type: :on_off, default: 'off'},
       ft_stopword_file:                {type: :file, default: nil},
+      sql_mode:                        {type: :string, default: nil},
       users:                           {type: :array, of: :hash, template: USER_DEFAULTS, default: DEFAULT_USERS}
     }
 

@@ -139,6 +139,9 @@ allow_suspicious_udfs
 <% if config[:ansi] -%>
 ansi
 <% end -%>
+<% if config[:sql_mode] -%>
+sql_mode = <%= config[:sql_mode] %>
+<% end -%>
 
 # Full Text Settings
 <% if config[:ft_max_word_len] and config[:ft_max_word_len] >= 10 -%>
