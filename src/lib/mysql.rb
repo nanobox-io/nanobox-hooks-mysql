@@ -100,7 +100,7 @@ module Hooky
       max_connections:                 {type: :integer, default: nil},
       max_allowed_packet:              {type: :byte, default: '24M'},
       max_join_size:                   {type: :integer, default: 9223372036854775807},
-      net_buffer_length:               {type: :byte, default: '2K'},
+      net_buffer_length:               {type: :byte, default: '16384'},
       group_concat_max_len:            {type: :integer, default: 1024},
       thread_stack:                    {type: :byte, default: '256K'},
       tmp_table_size:                  {type: :byte, default: '64M'},
